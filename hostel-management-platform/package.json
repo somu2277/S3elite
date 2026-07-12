@@ -1,0 +1,10 @@
+{
+  "name": "smart-hostel-management-platform",
+  "version": "1.0.0",
+  "description": "Smart AI-Powered Hostel Management and Digital Payment Platform (MERN)",
+  "scripts": {
+    "start:server": "cd server && npm start",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev"
+  }
+}
