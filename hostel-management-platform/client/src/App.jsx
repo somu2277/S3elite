@@ -131,8 +131,10 @@ const App = () => {
         {renderContent()}
       </main>
 
-      {/* Floating Call and WhatsApp Pop Buttons */}
-      {currentView === 'home' && <FloatingContactButtons />}
+      {/* Floating Action Buttons (Visible on all public pages) */}
+      {currentView !== 'owner' && currentView !== 'admin-login' && (
+        <FloatingContactButtons onOpenBooking={() => handleOpenBooking()} />
+      )}
 
       <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500">
         <p>© 2026 S3 Elite PG & Hostel Management Platform • Complete Enterprise ERP Isolation • Built on MERN Stack</p>

@@ -117,27 +117,27 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
 
   if (bookingSuccess) {
     return (
-      <div className="min-h-[85vh] flex items-center justify-center p-4 bg-darkBg relative overflow-hidden">
+      <div className="min-h-[85vh] flex items-center justify-center p-4 bg-bgLight relative overflow-hidden">
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-emerald-600/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
         
         <div className="w-full max-w-lg glass-card p-10 text-center space-y-6 border border-emerald-500/40 z-10 shadow-2xl">
           <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-400">
             <CheckCircle2 className="w-10 h-10" />
           </div>
-          <h2 className="text-2xl font-black text-white">Booking Request Submitted!</h2>
-          <p className="text-slate-400 text-sm leading-relaxed">
+          <h2 className="text-2xl font-black text-textDark">Booking Request Submitted!</h2>
+          <p className="text-textMuted text-sm leading-relaxed">
             Your reservation request for <strong>Room {selectedRoomCot.room} (Cot #{selectedRoomCot.cot})</strong> has been successfully placed. The bed is now <strong className="text-amber-400">Reserved</strong> pending admin approval.
           </p>
-          <div className="p-4 bg-slate-900/80 rounded-xl border border-slate-800 text-left space-y-2">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Next Steps</p>
-            <p className="text-xs text-slate-300">1. The Hostel Admin will review your application.</p>
-            <p className="text-xs text-slate-300">2. You will receive a WhatsApp message and Email confirmation.</p>
-            <p className="text-xs text-slate-300">3. A team member will contact you at <strong>{formData.phone}</strong> for payment and admission details.</p>
+          <div className="p-4 bg-slate-50 rounded-xl border border-borderLight text-left space-y-2">
+            <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Next Steps</p>
+            <p className="text-xs text-textMuted">1. The Hostel Admin will review your application.</p>
+            <p className="text-xs text-textMuted">2. You will receive a WhatsApp message and Email confirmation.</p>
+            <p className="text-xs text-textMuted">3. A team member will contact you at <strong>{formData.phone}</strong> for payment and admission details.</p>
           </div>
           <button
             onClick={() => window.location.href = '/'}
-            className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all shadow-lg mt-4"
+            className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-textDark font-bold text-xs transition-all shadow-lg mt-4"
           >
             Return to Homepage
           </button>
@@ -147,21 +147,21 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
   }
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center p-4 bg-darkBg relative overflow-hidden py-10">
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-[85vh] flex items-center justify-center p-4 bg-bgLight relative overflow-hidden py-10">
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-2xl flex flex-col items-center justify-center z-10 space-y-6">
         
         <div className="w-full text-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-black text-white leading-tight">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">S3 Elite</span> PG
+          <h1 className="text-3xl md:text-4xl font-black text-textDark leading-tight">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary">S3 Elite</span> PG
           </h1>
 
           {onCancel && (
             <button
               onClick={onCancel}
-              className="inline-flex items-center justify-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 text-xs text-textMuted hover:text-textDark transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Bed Availability
@@ -175,12 +175,12 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
                 Selected Cot for Reservation
               </div>
               <p className="text-xs text-slate-200 pt-1">
-                Room <strong className="text-white">{selectedRoomCot.room}</strong> • Cot <strong className="text-white">#{selectedRoomCot.cot}</strong> ({selectedRoomCot.floor})
+                Room <strong className="text-textDark">{selectedRoomCot.room}</strong> • Cot <strong className="text-textDark">#{selectedRoomCot.cot}</strong> ({selectedRoomCot.floor})
               </p>
               <div className="bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-500/20 space-y-1.5 mt-2">
-                <div className="flex justify-between text-xs text-slate-300">
+                <div className="flex justify-between text-xs text-textMuted">
                   <span>Room Rent:</span>
-                  <span className="font-semibold text-white">₹{selectedRoomCot.rent || 6000}</span>
+                  <span className="font-semibold text-textDark">₹{selectedRoomCot.rent || 6000}</span>
                 </div>
               </div>
             </div>
@@ -192,41 +192,41 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
         </div>
 
         {selectedRoomCot && (
-          <div className="glass-card w-full p-8 border border-slate-800 bg-darkCard/90 shadow-2xl">
-            <div className="mb-6 border-b border-slate-800/80 pb-4">
-              <h2 className="text-xl font-bold text-white">Hostel Booking Application</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Submit your details to request a booking. Admin will review and approve.</p>
+          <div className="glass-card w-full p-8 border border-borderLight bg-cardBg/90 shadow-2xl">
+            <div className="mb-6 border-b border-borderLight/80 pb-4">
+              <h2 className="text-xl font-bold text-textDark">Hostel Booking Application</h2>
+              <p className="text-xs text-textMuted mt-0.5">Submit your details to request a booking. Admin will review and approve.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Personal Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">Full Name</label>
                   <div className="relative">
-                    <UserIcon className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                    <UserIcon className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                     <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Enter your full name"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Father / Guardian Name</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">Father / Guardian Name</label>
                   <div className="relative">
-                    <UserIcon className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                    <UserIcon className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                     <input
                       type="text"
                       name="fatherName"
                       value={formData.fatherName}
                       onChange={handleChange}
                       placeholder="Enter father's name"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                       required
                     />
                   </div>
@@ -236,31 +236,31 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
               {/* Contact Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Mobile Number</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">Mobile Number</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                    <Phone className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                     <input
                       type="tel"
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="Primary Mobile Number"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">WhatsApp Number</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">WhatsApp Number</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                    <Phone className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                     <input
                       type="tel"
                       name="whatsappNumber"
                       value={formData.whatsappNumber}
                       onChange={handleChange}
                       placeholder="WhatsApp Number"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                       required
                     />
                   </div>
@@ -269,31 +269,31 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">Email Address</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                    <Mail className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="Email Address"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Emergency Contact</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">Emergency Contact</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                    <Phone className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                     <input
                       type="tel"
                       name="emergencyContact"
                       value={formData.emergencyContact}
                       onChange={handleChange}
                       placeholder="Emergency Contact Number"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                       required
                     />
                   </div>
@@ -302,16 +302,16 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
 
               {/* Address */}
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Current Address</label>
+                <label className="block text-xs font-medium text-textMuted mb-1">Current Address</label>
                 <div className="relative">
-                  <Home className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                  <Home className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                   <input
                     type="text"
                     name="currentAddress"
                     value={formData.currentAddress}
                     onChange={handleChange}
                     placeholder="Full Residential Address"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                     required
                   />
                 </div>
@@ -320,14 +320,14 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
               {/* Occupation & College/Company */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Occupation</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">Occupation</label>
                   <div className="relative">
-                    <Briefcase className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                    <Briefcase className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                     <select
                       name="occupation"
                       value={formData.occupation}
                       onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                     >
                       <option value="Student">Student</option>
                       <option value="Working Professional">Working Professional</option>
@@ -335,16 +335,16 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">College / Company Name</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">College / Company Name</label>
                   <div className="relative">
-                    <Building className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                    <Building className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                     <input
                       type="text"
                       name="collegeCompany"
                       value={formData.collegeCompany}
                       onChange={handleChange}
                       placeholder="e.g. IIT Hyderabad or Infosys"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                       required
                     />
                   </div>
@@ -353,28 +353,28 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Aadhaar Number (Optional)</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">Aadhaar Number (Optional)</label>
                   <div className="relative">
-                    <FileText className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                    <FileText className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                     <input
                       type="text"
                       name="aadhaar"
                       value={formData.aadhaar}
                       onChange={handleChange}
                       placeholder="XXXX-XXXX-XXXX"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Expected Joining Date</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">Expected Joining Date</label>
                   <div className="relative">
                     <input
                       type="date"
                       name="expectedJoiningDate"
                       value={formData.expectedJoiningDate}
                       onChange={handleChange}
-                      className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full px-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                       required
                     />
                   </div>
@@ -382,55 +382,65 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Additional Notes (Optional)</label>
+                <label className="block text-xs font-medium text-textMuted mb-1">Additional Notes (Optional)</label>
                 <textarea
                   name="notes"
                   value={formData.notes}
                   onChange={handleChange}
                   placeholder="Any special requests or notes for the admin..."
-                  className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none h-20 resize-none"
+                  className="w-full px-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none h-20 resize-none"
                 />
               </div>
 
               {/* Payment Section */}
-              <div className="mt-8 border-t border-slate-800/80 pt-6">
+              <div className="mt-8 border-t border-borderLight/80 pt-6">
                 <h3 className="text-sm font-black text-amber-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                   <QrCode className="w-4 h-4" /> Payment Details
                 </h3>
-                <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                <p className="text-xs text-textMuted mb-4 leading-relaxed">
                   To confirm your booking request, please complete the payment using the UPI details below. After payment, enter your 12-digit UTR number and upload the payment screenshot.
                 </p>
 
-                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 mb-4 flex flex-col md:flex-row gap-6 items-center md:items-start justify-center">
-                  <div className="bg-white p-2 rounded-xl">
-                    <QrCode className="w-32 h-32 text-slate-900" />
+                <div className="bg-slate-50 p-4 rounded-xl border border-borderLight mb-4 flex flex-col md:flex-row gap-6 items-center md:items-start justify-center">
+                  <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex-shrink-0">
+                    <img src="/payment_qr.png" alt="PhonePe QR Code" className="w-32 h-32 object-contain" />
                   </div>
-                  <div className="text-center md:text-left space-y-2">
-                    <p className="text-xs text-slate-400">Official UPI ID</p>
-                    <p className="text-sm font-bold text-white">s3elitepg@sbi</p>
-                    <p className="text-xs text-slate-400 mt-2">Account Holder</p>
-                    <p className="text-sm font-bold text-white">S3 Elite PG</p>
-                    <div className="mt-3 inline-block bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
-                      <p className="text-xs text-slate-400">Amount Payable</p>
-                      <p className="text-lg font-black text-emerald-400">₹{selectedRoomCot.rent || 6000}</p>
+                  <div className="text-center md:text-left space-y-2 w-full max-w-xs">
+                    <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider">Payment Method</p>
+                    <p className="text-sm font-bold text-textDark">PhonePe / UPI</p>
+                    
+                    <div className="grid grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider">UPI ID</p>
+                        <p className="text-xs font-mono font-bold text-textDark mt-0.5">7569712731@ybl</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider">PhonePe No.</p>
+                        <p className="text-xs font-mono font-bold text-textDark mt-0.5">7569712731</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3 inline-block bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-lg w-full">
+                      <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-1">Amount Payable</p>
+                      <p className="text-lg font-black text-emerald-600">₹{selectedRoomCot.rent || 6000}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">12-Digit UTR Number</label>
+                    <label className="block text-xs font-medium text-textMuted mb-1">12-Digit UTR Number</label>
                     <input
                       type="text"
                       value={utrNumber}
                       onChange={(e) => setUtrNumber(e.target.value.replace(/\D/g, '').slice(0, 12))}
                       placeholder="Enter 12-digit UTR Number"
-                      className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-purple-500 focus:outline-none"
+                      className="w-full px-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Payment Screenshot</label>
+                    <label className="block text-xs font-medium text-textMuted mb-1">Payment Screenshot</label>
                     <div className="relative">
                       <input
                         type="file"
@@ -441,7 +451,7 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
                       />
                       <label
                         htmlFor="payment-screenshot"
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300 cursor-pointer hover:bg-slate-800 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textMuted cursor-pointer hover:bg-slate-100 transition-colors"
                       >
                         <UploadCloud className="w-4 h-4" />
                         {isUploading ? 'Uploading...' : paymentScreenshotUrl ? 'Screenshot Uploaded' : 'Upload Screenshot (Max 5MB)'}
@@ -463,8 +473,8 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
               <button
                 type="submit"
                 disabled={isSubmitting || isUploading || utrNumber.length !== 12 || !paymentScreenshotUrl}
-                className={`w-full py-3.5 rounded-xl text-white font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 mt-4 
-                  ${isSubmitting || isUploading || utrNumber.length !== 12 || !paymentScreenshotUrl ? 'bg-slate-700 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-purple-600/30'}`}
+                className={`w-full py-3.5 rounded-xl text-textDark font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 mt-4 
+                  ${isSubmitting || isUploading || utrNumber.length !== 12 || !paymentScreenshotUrl ? 'bg-slate-700 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-500 hover:to-orange-500 shadow-amber-500/30'}`}
               >
                 {isSubmitting ? 'Submitting Request...' : 'Request Booking'}
                 <ArrowRight className="w-4 h-4" />

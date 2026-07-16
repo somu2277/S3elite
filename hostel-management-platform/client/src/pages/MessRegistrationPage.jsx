@@ -105,7 +105,7 @@ const MessRegistrationPage = ({ onCancel }) => {
 
   if (success) {
     return (
-      <div className="min-h-[85vh] flex items-center justify-center p-4 bg-darkBg relative overflow-hidden">
+      <div className="min-h-[85vh] flex items-center justify-center p-4 bg-bgLight relative overflow-hidden">
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-amber-600/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-orange-600/15 rounded-full blur-3xl pointer-events-none" />
         
@@ -113,18 +113,18 @@ const MessRegistrationPage = ({ onCancel }) => {
           <div className="w-20 h-20 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto text-amber-400">
             <CheckCircle2 className="w-10 h-10" />
           </div>
-          <h2 className="text-2xl font-black text-white">Registration Successful!</h2>
-          <p className="text-slate-400 text-sm leading-relaxed">
+          <h2 className="text-2xl font-black text-textDark">Registration Successful!</h2>
+          <p className="text-textMuted text-sm leading-relaxed">
             Your Monthly Mess application has been submitted.
           </p>
-          <div className="p-4 bg-slate-900/80 rounded-xl border border-slate-800 text-left space-y-2">
-            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Next Steps</p>
-            <p className="text-xs text-slate-300">1. Admin will review your subscription request.</p>
-            <p className="text-xs text-slate-300">2. Our team will contact you for plan activation & payment.</p>
+          <div className="p-4 bg-slate-50 rounded-xl border border-borderLight text-left space-y-2">
+            <p className="text-xs text-textMuted font-bold uppercase tracking-wider">Next Steps</p>
+            <p className="text-xs text-textMuted">1. Admin will review your subscription request.</p>
+            <p className="text-xs text-textMuted">2. Our team will contact you for plan activation & payment.</p>
           </div>
           <button
             onClick={() => window.location.href = '/'}
-            className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all shadow-lg mt-4"
+            className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-textDark font-bold text-xs transition-all shadow-lg mt-4"
           >
             Return to Homepage
           </button>
@@ -134,7 +134,7 @@ const MessRegistrationPage = ({ onCancel }) => {
   }
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center p-4 bg-darkBg relative overflow-hidden py-10">
+    <div className="min-h-[85vh] flex items-center justify-center p-4 bg-bgLight relative overflow-hidden py-10">
       <div className="absolute top-1/4 -left-32 w-96 h-96 bg-amber-600/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-orange-600/15 rounded-full blur-3xl pointer-events-none" />
 
@@ -142,16 +142,16 @@ const MessRegistrationPage = ({ onCancel }) => {
         
         <div className="w-full text-center space-y-4">
           <div className="w-14 h-14 bg-gradient-to-tr from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-orange-500/30">
-            <Utensils className="w-7 h-7 text-white" />
+            <Utensils className="w-7 h-7 text-textDark" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-black text-white leading-tight">
+          <h1 className="text-3xl md:text-4xl font-black text-textDark leading-tight">
             Monthly Mess Registration
           </h1>
 
           {onCancel && (
             <button
               onClick={onCancel}
-              className="inline-flex items-center justify-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors mt-2"
+              className="inline-flex items-center justify-center gap-1.5 text-xs text-textMuted hover:text-textDark transition-colors mt-2"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Home
@@ -159,37 +159,37 @@ const MessRegistrationPage = ({ onCancel }) => {
           )}
         </div>
 
-        <div className="glass-card w-full p-8 border border-slate-800 bg-darkCard/90 shadow-2xl">
+        <div className="glass-card w-full p-8 border border-borderLight bg-cardBg/90 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             
             {/* Personal Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
+                <label className="block text-xs font-medium text-textMuted mb-1">Full Name</label>
                 <div className="relative">
-                  <UserIcon className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                  <UserIcon className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Enter your full name"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-amber-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                     required
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+                <label className="block text-xs font-medium text-textMuted mb-1">Email Address</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                  <Mail className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Email Address"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-amber-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                     required
                   />
                 </div>
@@ -199,31 +199,31 @@ const MessRegistrationPage = ({ onCancel }) => {
             {/* Contact Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Mobile Number</label>
+                <label className="block text-xs font-medium text-textMuted mb-1">Mobile Number</label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                  <Phone className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="Primary Mobile Number"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-amber-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                     required
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">WhatsApp Number</label>
+                <label className="block text-xs font-medium text-textMuted mb-1">WhatsApp Number</label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                  <Phone className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                   <input
                     type="tel"
                     name="whatsappNumber"
                     value={formData.whatsappNumber}
                     onChange={handleChange}
                     placeholder="WhatsApp Number"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-amber-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                     required
                   />
                 </div>
@@ -232,16 +232,16 @@ const MessRegistrationPage = ({ onCancel }) => {
 
             {/* Address */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Current Address</label>
+              <label className="block text-xs font-medium text-textMuted mb-1">Current Address</label>
               <div className="relative">
-                <Home className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                <Home className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                 <input
                   type="text"
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
                   placeholder="Full Residential Address"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-amber-500 focus:outline-none"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                   required
                 />
               </div>
@@ -250,14 +250,14 @@ const MessRegistrationPage = ({ onCancel }) => {
             {/* Occupation & College/Company */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Occupation</label>
+                <label className="block text-xs font-medium text-textMuted mb-1">Occupation</label>
                 <div className="relative">
-                  <Briefcase className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                  <Briefcase className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                   <select
                     name="occupation"
                     value={formData.occupation}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-amber-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                   >
                     <option value="Student">Student</option>
                     <option value="Working Professional">Working Professional</option>
@@ -266,16 +266,16 @@ const MessRegistrationPage = ({ onCancel }) => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">College / Company Name</label>
+                <label className="block text-xs font-medium text-textMuted mb-1">College / Company Name</label>
                 <div className="relative">
-                  <Building className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                  <Building className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                   <input
                     type="text"
                     name="collegeCompany"
                     value={formData.collegeCompany}
                     onChange={handleChange}
                     placeholder="e.g. IIT Hyderabad or Infosys"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-amber-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                     required
                   />
                 </div>
@@ -285,14 +285,14 @@ const MessRegistrationPage = ({ onCancel }) => {
             {/* Meal Preference & Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Meal Preference</label>
+                <label className="block text-xs font-medium text-textMuted mb-1">Meal Preference</label>
                 <div className="relative">
-                  <Utensils className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
+                  <Utensils className="absolute left-3 top-3 w-4 h-4 text-textMuted" />
                   <select
                     name="mealPreference"
                     value={formData.mealPreference}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-amber-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                   >
                     <option value="Veg">Vegetarian</option>
                     <option value="Non-Veg">Non-Vegetarian</option>
@@ -300,14 +300,14 @@ const MessRegistrationPage = ({ onCancel }) => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Expected Start Date</label>
+                <label className="block text-xs font-medium text-textMuted mb-1">Expected Start Date</label>
                 <div className="relative">
                   <input
                     type="date"
                     name="startDate"
                     value={formData.startDate}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-amber-500 focus:outline-none"
+                    className="w-full px-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                     required
                   />
                 </div>
@@ -316,7 +316,7 @@ const MessRegistrationPage = ({ onCancel }) => {
 
             {/* Additional Notes */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Additional Notes (Optional)</label>
+              <label className="block text-xs font-medium text-textMuted mb-1">Additional Notes (Optional)</label>
               <div className="relative">
                 <textarea
                   name="notes"
@@ -324,50 +324,60 @@ const MessRegistrationPage = ({ onCancel }) => {
                   onChange={handleChange}
                   placeholder="Any specific dietary requirements or queries..."
                   rows="3"
-                  className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-amber-500 focus:outline-none"
+                  className="w-full px-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Payment Section */}
-            <div className="mt-8 border-t border-slate-800/80 pt-6">
+            <div className="mt-8 border-t border-borderLight/80 pt-6">
               <h3 className="text-sm font-black text-amber-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                 <QrCode className="w-4 h-4" /> Payment Details
               </h3>
-              <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+              <p className="text-xs text-textMuted mb-4 leading-relaxed">
                 To confirm your booking request, please complete the payment using the UPI details below. After payment, enter your 12-digit UTR number and upload the payment screenshot.
               </p>
 
-              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800 mb-4 flex flex-col md:flex-row gap-6 items-center md:items-start justify-center">
-                <div className="bg-white p-2 rounded-xl">
-                  <QrCode className="w-32 h-32 text-slate-900" />
+              <div className="bg-slate-50 p-4 rounded-xl border border-borderLight mb-4 flex flex-col md:flex-row gap-6 items-center md:items-start justify-center">
+                <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex-shrink-0">
+                  <img src="/payment_qr.png" alt="PhonePe QR Code" className="w-32 h-32 object-contain" />
                 </div>
-                <div className="text-center md:text-left space-y-2">
-                  <p className="text-xs text-slate-400">Official UPI ID</p>
-                  <p className="text-sm font-bold text-white">s3elitepg@sbi</p>
-                  <p className="text-xs text-slate-400 mt-2">Account Holder</p>
-                  <p className="text-sm font-bold text-white">S3 Elite PG</p>
-                  <div className="mt-3 inline-block bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
-                    <p className="text-xs text-slate-400">Monthly Mess Fee</p>
-                    <p className="text-lg font-black text-emerald-400">₹2500</p>
+                <div className="text-center md:text-left space-y-2 w-full max-w-xs">
+                  <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider">Payment Method</p>
+                  <p className="text-sm font-bold text-textDark">PhonePe / UPI</p>
+                  
+                  <div className="grid grid-cols-2 gap-4 mt-2">
+                    <div>
+                      <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider">UPI ID</p>
+                      <p className="text-xs font-mono font-bold text-textDark mt-0.5">7569712731@ybl</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider">PhonePe No.</p>
+                      <p className="text-xs font-mono font-bold text-textDark mt-0.5">7569712731</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 inline-block bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-lg w-full">
+                    <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-1">Monthly Mess Fee</p>
+                    <p className="text-lg font-black text-emerald-600">₹2500</p>
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">12-Digit UTR Number</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">12-Digit UTR Number</label>
                   <input
                     type="text"
                     value={utrNumber}
                     onChange={(e) => setUtrNumber(e.target.value.replace(/\D/g, '').slice(0, 12))}
                     placeholder="Enter 12-digit UTR Number"
-                    className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:border-amber-500 focus:outline-none"
+                    className="w-full px-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Payment Screenshot</label>
+                  <label className="block text-xs font-medium text-textMuted mb-1">Payment Screenshot</label>
                   <div className="relative">
                     <input
                       type="file"
@@ -378,7 +388,7 @@ const MessRegistrationPage = ({ onCancel }) => {
                     />
                     <label
                       htmlFor="mess-payment-screenshot"
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300 cursor-pointer hover:bg-slate-800 transition-colors"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textMuted cursor-pointer hover:bg-slate-100 transition-colors"
                     >
                       <UploadCloud className="w-4 h-4" />
                       {isUploading ? 'Uploading...' : paymentScreenshotUrl ? 'Screenshot Uploaded' : 'Upload Screenshot (Max 5MB)'}
@@ -400,7 +410,7 @@ const MessRegistrationPage = ({ onCancel }) => {
             <button
               type="submit"
               disabled={isSubmitting || isUploading || utrNumber.length !== 12 || !paymentScreenshotUrl}
-              className={`w-full py-3.5 rounded-xl text-white font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 mt-4 
+              className={`w-full py-3.5 rounded-xl text-textDark font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 mt-4 
                 ${isSubmitting || isUploading || utrNumber.length !== 12 || !paymentScreenshotUrl ? 'bg-slate-700 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-600/30'}`}
             >
               {isSubmitting ? 'Submitting Application...' : 'Apply for Monthly Mess'}
