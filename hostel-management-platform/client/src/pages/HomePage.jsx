@@ -111,7 +111,7 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
     fetchLiveDatabaseData();
 
     // Socket.IO real-time auto-synchronization (no page refresh required)
-    const socket = io();
+    const socket = io({ transports: ['polling'] });
     socket.on('ERP_EVENT', (event) => {
       console.log('[Socket.IO] Public website synchronizing live MongoDB update:', event?.type);
       fetchLiveDatabaseData();

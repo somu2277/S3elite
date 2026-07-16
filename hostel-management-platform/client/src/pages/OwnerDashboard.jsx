@@ -157,7 +157,7 @@ const OwnerDashboard = () => {
     fetchDashboardData();
 
     // Connect to backend Socket.IO
-    const socket = io();
+    const socket = io({ transports: ['polling'] });
     socket.on('ERP_EVENT', (data) => {
       console.log('[Socket.IO] Real-Time MongoDB update received:', data);
       fetchDashboardData(true);
