@@ -489,23 +489,26 @@ router.put('/payments/:id/verify', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Payment record not found' });
     }
 
-    payment.verificationStatus = 'Verified';
+    await Payment.updateOne({ _id: req.params.id }, {
+      $set: { verificationStatus: 'Verified', status: 'Successful' }
+    });
+    payment.verificationStatus = 'Verified'; // For socket event payload
     payment.status = 'Successful';
-    await payment.save();
 
     // Update bed payment status automatically
     const bed = await Bed.findOne({ roomNumber: payment.roomNumber, bedNumber: payment.bedNumber });
     if (bed) {
-      bed.paymentStatus = 'Paid';
-      bed.pendingAmount = 0;
-      bed.lastPaymentDate = new Date().toLocaleDateString('en-GB');
-
-      // Auto advance due date by 30 days
       const d = new Date();
       d.setDate(d.getDate() + 30);
-      bed.nextDueDate = d.toLocaleDateString('en-GB');
-
-      await bed.save();
+      
+      await Bed.updateOne({ _id: bed._id }, {
+        $set: {
+          paymentStatus: 'Paid',
+          pendingAmount: 0,
+          lastPaymentDate: new Date().toLocaleDateString('en-GB'),
+          nextDueDate: d.toLocaleDateString('en-GB')
+        }
+      });
     }
 
     emitSocketEvent(req, 'PAYMENT_VERIFIED', payment);
@@ -527,15 +530,18 @@ router.put('/payments/:id/reject', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Payment record not found' });
     }
 
-    payment.verificationStatus = 'Rejected';
+    await Payment.updateOne({ _id: req.params.id }, {
+      $set: { verificationStatus: 'Rejected', status: 'Failed' }
+    });
+    payment.verificationStatus = 'Rejected'; // For socket event payload
     payment.status = 'Failed';
-    await payment.save();
 
     emitSocketEvent(req, 'PAYMENT_REJECTED', payment);
 
     return res.status(200).json({ success: true, data: payment });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error('PAYMENT REJECT ERROR:', err);
+    return res.status(500).json({ success: false, message: err.message, stack: err.stack });
   }
 });
 
@@ -835,29 +841,35 @@ router.put('/payment-verifications/:type/:id/reject', async (req, res) => {
       const request = await BookingRequest.findById(id);
       if (!request) return res.status(404).json({ success: false, message: 'Request not found' });
       
-      request.paymentStatus = 'Rejected';
-      request.verificationRemark = reason || 'Payment not found or invalid screenshot';
-      request.status = 'Rejected';
-      await request.save();
+      await BookingRequest.updateOne({ _id: id }, {
+        $set: {
+          paymentStatus: 'Rejected',
+          verificationRemark: reason || 'Payment not found or invalid screenshot',
+          status: 'Rejected'
+        }
+      });
 
       const bed = await Bed.findOne({ roomNumber: request.preferredRoom, bedNumber: request.preferredBed });
       if (bed && bed.reservationStatus === 'Reserved' && !bed.occupied) {
-        bed.reservationStatus = 'Available';
-        await bed.save();
+        await Bed.updateOne({ _id: bed._id }, { $set: { reservationStatus: 'Available' } });
       }
     } else if (type === 'Mess') {
       const request = await MessSubscriber.findById(id);
       if (!request) return res.status(404).json({ success: false, message: 'Request not found' });
       
-      request.paymentStatus = 'Rejected';
-      request.verificationRemark = reason || 'Payment not found or invalid screenshot';
-      request.status = 'Rejected';
-      await request.save();
+      await MessSubscriber.updateOne({ _id: id }, {
+        $set: {
+          paymentStatus: 'Rejected',
+          verificationRemark: reason || 'Payment not found or invalid screenshot',
+          status: 'Rejected'
+        }
+      });
     }
 
     return res.status(200).json({ success: true, message: 'Payment rejected' });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error('REJECT ERROR:', err);
+    return res.status(500).json({ success: false, message: err.message, stack: err.stack });
   }
 });
 

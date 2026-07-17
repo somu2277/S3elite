@@ -41,6 +41,7 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Strictly Live MongoDB States (No Hardcoded or Dummy Data)
+  const [isLoading, setIsLoading] = useState(true);
   const [floorBlocks, setFloorBlocks] = useState([]);
   const [stats, setStats] = useState({
     totalRooms: 0,
@@ -57,10 +58,23 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
     }
   });
 
+  const getSharingCapacity = (roomNumber) => {
+    if (!roomNumber) return 4;
+    const num = roomNumber.toUpperCase();
+    if (['S11', 'S12', 'S13', 'S14', 'S21', 'S22', 'S23', 'S24', 'S31', 'S32'].includes(num)) return 4;
+    if (['S15', 'S16', 'S17', 'S18', 'S25', 'S26', 'S27', 'S28', 'S33', 'S34'].includes(num)) return 5;
+    if (['S01', 'S02'].includes(num)) return 6;
+    return 4;
+  };
+
   const fetchLiveDatabaseData = async () => {
     try {
-      // 1. Fetch Secure Public Statistics from MongoDB
-      const statsRes = await fetch('/api/public/statistics');
+      // Fetch both endpoints in parallel to dramatically improve loading speed
+      const [statsRes, roomsRes] = await Promise.all([
+        fetch('/api/public/statistics'),
+        fetch('/api/public/rooms')
+      ]);
+
       if (statsRes.ok) {
         const statsJson = await statsRes.json();
         if (statsJson.success && statsJson.data) {
@@ -68,8 +82,6 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
         }
       }
 
-      // 2. Fetch Live Rooms & Beds from MongoDB
-      const roomsRes = await fetch('/api/public/rooms');
       if (roomsRes.ok) {
         const roomsJson = await roomsRes.json();
         if (roomsJson.success && Array.isArray(roomsJson.data)) {
@@ -86,7 +98,7 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
 
             grouped[fName].push({
               id: room.roomNumber,
-              sharing: (room.beds || []).length || 4,
+              sharing: (room.beds && room.beds.length > 0) ? room.beds.length : getSharingCapacity(room.roomNumber),
               free: freeCount,
               rentPerBed: room.rentPerBed || 6000,
               cots: room.beds || []
@@ -104,6 +116,8 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
       }
     } catch (err) {
       console.error('Error fetching live public MongoDB data:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -156,93 +170,163 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
     rooms: block.rooms.filter((room) => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
-      return room.id.toLowerCase().includes(q) || `${room.sharing} sharing`.toLowerCase().includes(q);
     })
-  })).filter((block) => block.rooms.length > 0);
+  })).filter((block) => block.rooms.length > 0 && block.floorName !== 'Special Block');
 
   return (
     <div className="space-y-12 pb-14 bg-bgLight">
-      {/* Hero Banner Section */}
-      <section className="pt-16 pb-24 relative bg-bgLight overflow-hidden">
-        {/* Soft Background Elements */}
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-orange-100/40 to-transparent rounded-full blur-3xl opacity-70 pointer-events-none translate-x-1/3 -translate-y-1/4"></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-orange-50/60 to-transparent rounded-full blur-2xl opacity-60 pointer-events-none -translate-x-1/4 translate-y-1/4"></div>
+      {/* Hero Banner Section (Matches Reference Mockup) */}
+      <section className="relative bg-[#faf9f6] pt-12 lg:pt-24 pb-32 lg:pb-40 overflow-visible z-10">
+        
+        {/* Right Side Image with CSS Mask for Seamless Blend */}
+        <div className="absolute inset-y-0 right-0 w-full lg:w-[55%] z-0 h-[400px] lg:h-full top-0 lg:top-auto">
+          {/* Using standard CSS mask for the perfect fade effect shown in mockup */}
+          <div 
+            className="w-full h-full"
+            style={{ 
+              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 20%, black 100%)',
+              maskImage: 'linear-gradient(to right, transparent 0%, black 20%, black 100%)' 
+            }}
+          >
+            <img 
+              src="/building.jpg" 
+              alt="S3 Elite PG Building" 
+              className="w-full h-full object-cover object-[center_right]"
+            />
+          </div>
+          {/* Mobile fade mask (bottom) */}
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#faf9f6] to-transparent lg:hidden pointer-events-none z-10"></div>
+        </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-14">
+        {/* Hero Content Container */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row mt-64 sm:mt-80 lg:mt-0">
+          
+          {/* Left Content Side */}
+          <div className="lg:w-[50%] flex flex-col justify-center w-full relative z-20">
             
-            {/* Content Side (Left) */}
-            <div className="lg:w-[55%] flex flex-col justify-center order-2 lg:order-1 animate-fade-in">
-              <div className="flex items-center gap-2 mb-6">
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-green-100 text-green-600 text-[10px] font-black shadow-sm">✓</span>
-                <span className="text-xs sm:text-sm font-bold text-textDark tracking-wide">Premium PG in Kurnool</span>
-              </div>
-              
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-textDark leading-[1.15] mb-4">
-                S3 Elite PG
-              </h1>
-              <h2 className="text-xl sm:text-2xl font-bold text-primary mb-6">
-                Premium Accommodation for Students & Working Professionals
-              </h2>
-              
-              <p className="text-base sm:text-lg text-textMuted leading-relaxed mb-10 max-w-xl">
-                Comfortable rooms, hygienic monthly mess, high-speed Wi-Fi, CCTV surveillance, washing machine facility and a peaceful living environment.
-              </p>
-              
-              <div className="flex flex-wrap items-center gap-4 mb-10">
-                <a
-                  href="#floor-availability"
-                  className="flex items-center gap-2 px-8 py-4 rounded-xl bg-primary hover:bg-primaryHover text-white font-bold text-sm transition-all shadow-lg shadow-orange-500/30 hover:-translate-y-1"
-                >
-                  Book Your Bed
-                </a>
-                <button
-                  onClick={() => onOpenMess()}
-                  className="flex items-center gap-2 px-8 py-4 rounded-xl bg-white border border-borderLight text-textDark hover:bg-slate-50 font-bold text-sm transition-all shadow-sm hover:-translate-y-1"
-                >
-                  Join Monthly Mess
-                </button>
-              </div>
-
-              {/* LIVE BADGES */}
-              <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-x-6 gap-y-3">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="font-bold text-textDark text-sm">{stats.vacantBeds} Available Beds</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="font-bold text-textDark text-sm">{stats.totalRooms} Total Rooms</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="font-bold text-textDark text-sm">24/7 CCTV Protected</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="font-bold text-textDark text-sm">Monthly Mess Available</span>
-                </div>
-              </div>
+            {/* Trusted Badge */}
+            <div className="flex items-center gap-2 mb-4">
+              <svg className="w-4 h-4 text-orange-500 fill-current" viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              <span className="text-xs font-bold text-orange-500 uppercase tracking-wide">Trusted by 10,000+ Students</span>
+            </div>
+            
+            {/* Main Headline */}
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-[#1a1a1a] leading-[1.1] mb-6 tracking-tight">
+              Comfort, Care,<br />
+              Career, <span className="text-orange-500">Success</span>
+            </h1>
+            
+            {/* Description */}
+            <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-10 max-w-md font-medium">
+              Premium accommodation, hygienic food, and a positive environment that helps you focus on what truly matters — your future.
+            </p>
+            
+            {/* Buttons */}
+            <div className="flex flex-wrap items-center gap-4 mb-12">
+              <a
+                href="#floor-availability"
+                className="flex items-center gap-2 px-8 py-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm transition-transform hover:-translate-y-0.5 shadow-lg shadow-orange-500/25"
+              >
+                Book Your Bed
+                <ArrowRight className="w-4 h-4" />
+              </a>
+              <button
+                onClick={() => onOpenMess()}
+                className="flex items-center gap-2 px-8 py-4 rounded-xl bg-white border border-gray-200 text-gray-800 font-bold text-sm transition-transform hover:-translate-y-0.5 shadow-sm hover:shadow-md"
+              >
+                <Utensils className="w-4 h-4 text-orange-500" />
+                Join Monthly Mess
+              </button>
             </div>
 
-            {/* Image Side (Right) */}
-            <div className="lg:w-[50%] order-1 lg:order-2 w-full animate-slide-in-right relative lg:-mr-12 mt-8 lg:mt-0">
-              {/* Soft gradient mask blending the left edge into the background */}
-              <div className="absolute inset-y-0 left-0 w-32 md:w-48 bg-gradient-to-r from-bgLight via-bgLight/80 to-transparent z-10 pointer-events-none"></div>
-              
-              {/* Optional bottom gradient to smooth out the base */}
-              <div className="absolute inset-x-0 bottom-0 h-16 md:h-24 bg-gradient-to-t from-bgLight to-transparent z-10 pointer-events-none"></div>
-              
-              <img 
-                src="/building.jpg" 
-                alt="S3 Elite PG Building" 
-                loading="lazy"
-                className="w-full h-auto max-h-[600px] lg:max-h-[700px] object-cover rounded-xl"
-              />
+            {/* Happy Students & Parents */}
+            <div className="flex items-center gap-4">
+              <div className="flex -space-x-3">
+                <img src="https://i.pravatar.cc/100?img=11" alt="Student" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
+                <img src="https://i.pravatar.cc/100?img=12" alt="Student" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
+                <img src="https://i.pravatar.cc/100?img=33" alt="Student" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
+                <img src="https://i.pravatar.cc/100?img=44" alt="Student" className="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-gray-800">Happy Students & Parents</span>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="text-xs font-bold text-gray-600">4.8</span>
+                  <span className="text-[10px] text-gray-500">(2K+ Reviews)</span>
+                  <div className="flex text-amber-400 ml-1">
+                    {'★'.repeat(5)}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Floating Stats Bar (Positioned overlapping the bottom) */}
+        <div className="absolute left-1/2 -translate-x-1/2 -bottom-16 w-[95%] max-w-5xl z-30">
+          <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-6 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4">
+            
+            {/* Stat 1 */}
+            <div className="flex items-center gap-4 px-4 w-full md:w-auto">
+              <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 flex-shrink-0">
+                <BedDouble className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xl font-black text-gray-800 leading-tight">97</p>
+                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Beds Available</p>
+              </div>
+            </div>
+
+            <div className="hidden md:block w-px h-12 bg-gray-100"></div>
+
+            {/* Stat 2 */}
+            <div className="flex items-center gap-4 px-4 w-full md:w-auto">
+              <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 flex-shrink-0">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-lg font-black text-gray-800 leading-tight">24/7</p>
+                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Security</p>
+              </div>
+            </div>
+
+            <div className="hidden md:block w-px h-12 bg-gray-100"></div>
+
+            {/* Stat 3 */}
+            <div className="flex items-center gap-4 px-4 w-full md:w-auto">
+              <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 flex-shrink-0">
+                <Utensils className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-lg font-black text-gray-800 leading-tight">Hygienic</p>
+                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Food</p>
+              </div>
+            </div>
+
+            <div className="hidden md:block w-px h-12 bg-gray-100"></div>
+
+            {/* Stat 4 */}
+            <div className="flex items-center gap-4 px-4 w-full md:w-auto">
+              <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 flex-shrink-0">
+                <MapPin className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-lg font-black text-gray-800 leading-tight">Prime</p>
+                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Location</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </section>
+      
+      {/* Wavy bottom decorative shape from mockup (optional but adds flavor) */}
+      <div className="w-full overflow-hidden leading-none z-0 relative -mt-1 bg-white">
+        <svg className="relative block w-full h-[60px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#faf9f6"></path>
+        </svg>
+      </div>
 
       {/* FLOOR-WISE BED AVAILABILITY WITH DROPDOWN SELECTOR & COLLAPSIBLE DROP SECTIONS */}
       <section id="floor-availability" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 pt-10">
@@ -301,7 +385,13 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
 
         {/* ACCORDION / COLLAPSIBLE DROP SECTIONS FOR EACH FLOOR */}
         <div className="space-y-5">
-          {filteredBlocks.length === 0 ? (
+          {isLoading ? (
+            <div className="animate-pulse space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-16 bg-slate-200/50 rounded-2xl w-full border border-slate-100"></div>
+              ))}
+            </div>
+          ) : filteredBlocks.length === 0 ? (
             <div className="text-center p-10 bg-slate-50 rounded-2xl border border-borderLight">
               <p className="text-textMuted">No rooms match your search criteria.</p>
             </div>
@@ -313,84 +403,69 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
             return (
               <div
                 key={block.floorName}
-                className="rounded-2xl bg-white border border-borderLight overflow-hidden shadow-sm hover:shadow-md transition-all"
+                className="mb-10"
               >
-                {/* FLOOR DROP SECTION HEADER BUTTON (CLICK TO DROP / COLLAPSE) */}
-                <button
-                  type="button"
-                  onClick={() => toggleFloorDropSection(block.floorName)}
-                  className="w-full px-5 py-4 bg-slate-50 hover:bg-slate-100 border-b border-borderLight flex items-center justify-between text-left transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-base sm:text-lg font-extrabold text-textDark group-hover:text-primary transition-colors">
-                      {block.floorName}
-                    </span>
-                    <span className="px-2.5 py-0.5 rounded-lg bg-white text-textMuted border border-borderLight text-xs font-semibold shadow-sm">
-                      {block.roomCount}
-                    </span>
-                  </div>
+                {/* FLOOR STATIC HEADER (Matches Mockup) */}
+                <div className="flex items-center gap-4 mb-6 px-2">
+                  <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                    {block.floorName}
+                  </h2>
+                  <span className="px-3 py-1 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shadow-sm">
+                    {block.roomCount}
+                  </span>
+                </div>
 
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-green-600">
-                      {floorFreeCots} free cots
-                    </span>
-                    <div className="w-8 h-8 rounded-lg bg-white border border-borderLight group-hover:bg-orange-50 flex items-center justify-center text-textDark transition-colors shadow-sm">
-                      {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-                    </div>
-                  </div>
-                </button>
-
-                {/* DROPPED DOWN ROOMS CONTAINER */}
-                {!isCollapsed && (
-                  <div className="p-5 bg-white">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {block.rooms.map((room) => (
+                {/* ROOMS CONTAINER */}
+                <div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {block.rooms.map((room) => {
+                        return (
                         <div
                           key={room.id}
-                          className="rounded-2xl bg-white border border-borderLight hover:border-primary/40 shadow-sm overflow-hidden transition-colors flex flex-col"
+                          className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col group"
                         >
-                          {/* Room Image (from Mockup) */}
-                          <div className="h-36 w-full relative">
-                            <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=600&q=80" alt="Room" className="w-full h-full object-cover" />
+                          {/* Image */}
+                          <div className="h-36 w-full bg-gray-100 overflow-hidden relative">
+                            <img 
+                              src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                              alt="Room interior"
+                              className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
+                            />
                           </div>
 
-                          <div className="p-4 flex-1 flex flex-col space-y-4">
-                            {/* Room Info */}
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <h3 className="text-base font-bold text-textDark">{room.id}</h3>
-                                <span className={`px-2 py-1 rounded-md text-[10px] font-bold ${
-                                  room.free > 0
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-slate-100 text-slate-500'
-                                }`}>
-                                  {room.free} {room.free === 1 ? 'Bed' : 'Beds'} Available
-                                </span>
+                          <div className="p-5 flex flex-col flex-1">
+                            {/* Room Header: Number & Badge */}
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-2xl font-black text-gray-900 tracking-tight">{room.id}</h3>
+                              <div className="bg-green-100 text-green-700 px-3 py-1 rounded-md text-xs font-bold capitalize">
+                                {room.free} Beds Available
                               </div>
-                              <p className="text-[11px] text-textMuted font-medium">{block.floorName} • {room.sharing} Sharing</p>
-                            </div>
-
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-lg font-black text-textDark">₹{(room.rentPerBed || 6500).toLocaleString('en-IN')}</span>
-                              <span className="text-xs text-textMuted font-medium">/ month</span>
                             </div>
                             
-                            <hr className="border-borderLight" />
+                            {/* Floor & Sharing */}
+                            <p className="text-xs font-bold text-gray-500 mb-5">
+                              {block.floorName} • {room.sharing} Sharing
+                            </p>
 
-                            {/* Cots Vertical List loaded directly from MongoDB */}
-                            <div className="space-y-2">
-                              {room.cots.map((bed, cIdx) => {
+
+
+                            {/* Dynamic Cot List */}
+                            <div className="space-y-3 flex-1 border-t border-gray-100 pt-5">
+                              {/* Generate exact number of cots based on sharing capacity */}
+                              {Array.from({ length: room.sharing }).map((_, index) => {
+                                const cotIndex = index;
+                                const bed = room.cots[cotIndex] || { bedNumber: cotIndex + 1, occupied: false, reservationStatus: 'Available' };
                                 const isAvailable = !bed.occupied && (bed.reservationStatus === 'Available' || !bed.reservationStatus);
                                 const isReserved = bed.reservationStatus === 'Reserved';
                                 const isMaintenance = bed.reservationStatus === 'Maintenance';
 
                                 return (
                                   <div
-                                    key={bed._id || cIdx}
-                                    className="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-slate-50 border border-borderLight shadow-sm"
+                                    key={bed._id || cotIndex}
+                                    className="flex items-center justify-between px-4 py-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors"
                                   >
-                                    <span className="font-bold text-textDark">
-                                      Cot {bed.bedNumber || cIdx + 1}
+                                    <span className="text-sm font-bold text-gray-800">
+                                      Cot {bed.bedNumber || cotIndex + 1}
                                     </span>
 
                                     {isAvailable ? (
@@ -398,32 +473,25 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
                                         onClick={() =>
                                           onOpenAuth('student', {
                                             room: room.id,
-                                            cot: bed.bedNumber || cIdx + 1,
+                                            cot: bed.bedNumber || cotIndex + 1,
                                             floor: block.floorName,
-                                            rent: bed.rentPerBed || room.rentPerBed || 6000,
                                             sharingType: `${room.sharing} Sharing`
                                           })
                                         }
-                                        className="px-4 py-1.5 rounded-md text-[11px] font-bold bg-primary hover:bg-primaryHover text-white transition-all shadow-sm shadow-orange-500/20 active:scale-95"
+                                        className="px-5 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition-all shadow-sm"
                                       >
                                         Book
                                       </button>
                                     ) : isReserved ? (
-                                      <span
-                                        className="px-3 py-1 rounded-md text-[10px] font-bold bg-orange-100 text-orange-700 border border-orange-200"
-                                      >
+                                      <span className="px-4 py-2 rounded-lg bg-orange-100 text-orange-700 text-xs font-bold">
                                         Reserved
                                       </span>
                                     ) : isMaintenance ? (
-                                      <span
-                                        className="px-3 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200"
-                                      >
+                                      <span className="px-4 py-2 rounded-lg bg-gray-100 text-gray-500 text-xs font-bold">
                                         Maintenance
                                       </span>
                                     ) : (
-                                      <span
-                                        className="px-3 py-1 rounded-md text-[10px] font-bold bg-red-100 text-red-700 border border-red-200"
-                                      >
+                                      <span className="px-4 py-2 rounded-lg bg-red-100 text-red-600 text-xs font-bold">
                                         Occupied
                                       </span>
                                     )}
@@ -433,10 +501,10 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
                             </div>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
-                )}
               </div>
             );
           }))}

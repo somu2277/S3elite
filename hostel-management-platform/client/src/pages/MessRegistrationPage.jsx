@@ -27,7 +27,7 @@ const MessRegistrationPage = ({ onCancel }) => {
     occupation: 'Student',
     mealPreference: 'Veg',
     startDate: new Date().toISOString().split('T')[0],
-    plan: 'Standard Monthly (₹2500)',
+    plan: 'Standard Monthly (₹3500)',
     notes: ''
   });
   const [error, setError] = useState('');
@@ -359,7 +359,7 @@ const MessRegistrationPage = ({ onCancel }) => {
                   
                   <div className="mt-3 inline-block bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-lg w-full">
                     <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-1">Monthly Mess Fee</p>
-                    <p className="text-lg font-black text-emerald-600">₹2500</p>
+                    <p className="text-lg font-black text-emerald-600">₹3500</p>
                   </div>
                 </div>
               </div>

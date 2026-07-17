@@ -21,6 +21,7 @@ const bookingRequestSchema = new mongoose.Schema({
   occupation: { type: String, default: 'Student' },
   gender: { type: String, default: 'Male' },
   expectedJoiningDate: { type: Date },
+  stayDuration: { type: String, required: true },
   notes: { type: String },
   aadhaar: { type: String },
   preferredRoom: { type: String, required: true },

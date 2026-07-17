@@ -31,11 +31,21 @@ import {
   Phone,
   Send,
   Eye,
-  AlertCircle
+  AlertCircle,
+  ChevronDown
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import { realtimeBus } from '../utils/realtimeBus';
 import AdminBedManagementDrawer from '../components/AdminBedManagementDrawer';
+import {
+  exportPGReport,
+  exportMessReport,
+  exportCombinedReport,
+  exportContactList,
+  exportDefaultersList,
+  exportOccupancyReport,
+  exportRevenueReport
+} from '../utils/excelReportGenerator';
 
 const OwnerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'matrix' | 'payments'
@@ -70,7 +80,15 @@ const OwnerDashboard = () => {
   const [bookingRequests, setBookingRequests] = useState([]);
   const [messSubscribers, setMessSubscribers] = useState([]);
   const [paymentVerifications, setPaymentVerifications] = useState([]);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    let normalized = path.replace(/\\/g, '/');
+    if (normalized.startsWith('uploads/')) normalized = '/' + normalized;
+    return normalized;
+  };
 
 
   // Fetch all real-time data strictly from MongoDB API
@@ -90,61 +108,56 @@ const OwnerDashboard = () => {
   };
 
   const fetchDashboardData = async (silent = false) => {
-
     if (!silent) setLoading(true);
     try {
-      // 1. Fetch Real Stats
-      const statsRes = await apiFetch('/api/admin/erp/stats');
+      // Fire all 6 fetch requests simultaneously
+      const [
+        statsRes,
+        matrixRes,
+        payRes,
+        bookRes,
+        messRes,
+        verifRes
+      ] = await Promise.all([
+        apiFetch('/api/admin/erp/stats'),
+        apiFetch('/api/admin/erp/matrix'),
+        apiFetch('/api/admin/erp/payments'),
+        apiFetch('/api/admin/erp/booking-requests'),
+        apiFetch('/api/admin/erp/mess-subscribers'),
+        apiFetch('/api/admin/erp/payment-verifications')
+      ]);
+
+      // Process responses
       if (statsRes.ok) {
         const statsJson = await statsRes.json();
-        if (statsJson.success && statsJson.data) {
-          setStats(statsJson.data);
-        }
+        if (statsJson.success && statsJson.data) setStats(statsJson.data);
       }
-
-      // 2. Fetch Live Room Layout & Bed Matrix
-      const matrixRes = await apiFetch('/api/admin/erp/matrix');
+      
       if (matrixRes.ok) {
         const matrixJson = await matrixRes.json();
-        if (matrixJson.success && Array.isArray(matrixJson.data)) {
-          setMatrixBeds(matrixJson.data);
-        }
+        if (matrixJson.success && Array.isArray(matrixJson.data)) setMatrixBeds(matrixJson.data);
       }
-
-      // 3. Fetch Real Payments
-      const payRes = await apiFetch('/api/admin/erp/payments');
+      
       if (payRes.ok) {
         const payJson = await payRes.json();
-        if (payJson.success && Array.isArray(payJson.data)) {
-          setPayments(payJson.data);
-        }
+        if (payJson.success && Array.isArray(payJson.data)) setPayments(payJson.data);
       }
-
-      // 4. Fetch Booking Requests
-      const bookRes = await apiFetch('/api/admin/erp/booking-requests');
+      
       if (bookRes.ok) {
         const bookJson = await bookRes.json();
-        if (bookJson.success && Array.isArray(bookJson.data)) {
-          setBookingRequests(bookJson.data);
-        }
+        if (bookJson.success && Array.isArray(bookJson.data)) setBookingRequests(bookJson.data);
       }
-
-      // 5. Fetch Mess Subscribers
-      const messRes = await apiFetch('/api/admin/erp/mess-subscribers');
+      
       if (messRes.ok) {
         const messJson = await messRes.json();
-        if (messJson.success && Array.isArray(messJson.data)) {
-          setMessSubscribers(messJson.data);
-        }
+        if (messJson.success && Array.isArray(messJson.data)) setMessSubscribers(messJson.data);
       }
-      // 6. Fetch Payment Verifications
-      const verifRes = await apiFetch('/api/admin/erp/payment-verifications');
+
       if (verifRes.ok) {
         const verifJson = await verifRes.json();
-        if (verifJson.success && Array.isArray(verifJson.data)) {
-          setPaymentVerifications(verifJson.data);
-        }
+        if (verifJson.success && Array.isArray(verifJson.data)) setPaymentVerifications(verifJson.data);
       }
+
     } catch (err) {
       console.error('Error loading MongoDB data:', err);
     } finally {
@@ -323,7 +336,7 @@ const OwnerDashboard = () => {
 
   // Group real matrix beds by floor & room
   const groupedRooms = matrixBeds
-    .filter((b) => filterFloor === 'All' || b.floorName === filterFloor)
+    .filter((b) => b.floorName !== 'Special Block' && (filterFloor === 'All' || b.floorName === filterFloor))
     .reduce((acc, bed) => {
       if (!acc[bed.roomNumber]) {
         acc[bed.roomNumber] = {
@@ -622,6 +635,52 @@ const OwnerDashboard = () => {
         >
           Payment Verification ({paymentVerifications.filter(p => p.paymentStatus === 'Pending Verification').length})
         </button>
+
+        {/* Export Reports Dropdown */}
+        <div className="relative ml-auto">
+          <button
+            onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+            className="px-5 py-2 rounded-full text-xs font-bold transition-all bg-primary text-white shadow-md shadow-primary/20 hover:bg-orange-600 flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" /> Export Reports <ChevronDown className="w-3 h-3 ml-1" />
+          </button>
+          
+          {exportDropdownOpen && (
+            <>
+              <div 
+                className="fixed inset-0 z-40" 
+                onClick={() => setExportDropdownOpen(false)}
+              />
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="p-2 space-y-1">
+                  <button onClick={() => { exportPGReport({ matrixBeds, stats }); setExportDropdownOpen(false); }} className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-primary rounded-lg transition-colors flex items-center gap-2">
+                    📥 Download PG Report
+                  </button>
+                  <button onClick={() => { exportMessReport({ messSubscribers, stats }); setExportDropdownOpen(false); }} className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-primary rounded-lg transition-colors flex items-center gap-2">
+                    📥 Download Monthly Mess Report
+                  </button>
+                  <div className="h-px bg-slate-100 my-1 mx-2" />
+                  <button onClick={() => { exportCombinedReport({ matrixBeds, messSubscribers, stats }); setExportDropdownOpen(false); }} className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-primary rounded-lg transition-colors flex items-center gap-2">
+                    📊 Download Combined Report
+                  </button>
+                  <button onClick={() => { exportContactList({ matrixBeds }); setExportDropdownOpen(false); }} className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-primary rounded-lg transition-colors flex items-center gap-2">
+                    📄 Download Contact List
+                  </button>
+                  <div className="h-px bg-slate-100 my-1 mx-2" />
+                  <button onClick={() => { exportDefaultersList({ matrixBeds }); setExportDropdownOpen(false); }} className="w-full text-left px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors flex items-center gap-2">
+                    ⚠ Download Defaulters List
+                  </button>
+                  <button onClick={() => { exportOccupancyReport({ matrixBeds, stats }); setExportDropdownOpen(false); }} className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-primary rounded-lg transition-colors flex items-center gap-2">
+                    🛏 Occupancy Report
+                  </button>
+                  <button onClick={() => { exportRevenueReport({ stats }); setExportDropdownOpen(false); }} className="w-full text-left px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-primary rounded-lg transition-colors flex items-center gap-2">
+                    💰 Revenue Report
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* TAB 1: REAL-TIME ROOM & BED MANAGEMENT */}
@@ -697,9 +756,6 @@ const OwnerDashboard = () => {
                       >
                         <div className="flex items-start justify-between">
                           <span className="text-xs font-black">Cot {bed.bedNumber}</span>
-                          <span className="text-[10px] font-extrabold opacity-80">
-                            ₹{bed.rentPerBed}
-                          </span>
                         </div>
                         <div className="mt-2 flex items-center gap-1.5">
                            {bed.occupied ? (
@@ -885,7 +941,9 @@ const OwnerDashboard = () => {
                     <tr key={req._id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-4">
                         <div className="font-bold text-textDark text-sm">{req.name}</div>
-                        <div className="text-[11px] font-semibold text-textMuted mt-0.5">{req.collegeCompany || 'N/A'}</div>
+                        <div className="text-[11px] font-semibold text-textMuted mt-0.5">
+                          {req.collegeCompany || 'N/A'} • {req.stayDuration ? `${req.stayDuration}` : 'Duration N/A'}
+                        </div>
                       </td>
                       <td className="p-4 text-xs font-semibold text-textMuted">
                         <div>{req.phone}</div>
@@ -1097,9 +1155,9 @@ const OwnerDashboard = () => {
                     </div>
                     <div>
                       <p className="text-[10px] text-textMuted uppercase font-bold">Screenshot</p>
-                      <a href={req.paymentScreenshot} target="_blank" rel="noreferrer" className="text-primary hover:text-indigo-600 text-xs flex items-center gap-1 mt-1 font-semibold">
+                      <button onClick={() => setPreviewImage(req)} className="text-primary hover:text-indigo-600 text-xs flex items-center gap-1 mt-1 font-semibold">
                         <ExternalLink className="w-3 h-3" /> View Image
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1146,6 +1204,62 @@ const OwnerDashboard = () => {
           onUpdateSuccess={() => fetchDashboardData(true)}
         />
       )}
+
+      {/* Payment Screenshot Preview Modal */}
+      {previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm bg-black/80">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                  {previewImage.name ? previewImage.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div>
+                  <h3 className="font-bold text-textDark">{previewImage.name || 'Applicant'}</h3>
+                  <div className="flex gap-3 text-[11px] font-semibold text-textMuted mt-0.5">
+                    <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500" /> UTR: {previewImage.utrNumber}</span>
+                    <span className="flex items-center gap-1"><BedDouble className="w-3 h-3 text-primary" /> Room {previewImage.preferredRoom}, Cot {previewImage.preferredBed}</span>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={() => setPreviewImage(null)}
+                className="p-2 rounded-lg hover:bg-slate-200 text-slate-500 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* Modal Body (Image) */}
+            <div className="flex-1 overflow-auto p-4 bg-slate-900 flex items-center justify-center min-h-[300px]">
+              {getImageUrl(previewImage.paymentScreenshot) ? (
+                <img 
+                  src={getImageUrl(previewImage.paymentScreenshot)} 
+                  alt="Payment Screenshot"
+                  className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : (
+                <div className="text-slate-400 flex flex-col items-center gap-2">
+                  <AlertCircle className="w-12 h-12 opacity-50" />
+                  <p className="font-semibold">No payment screenshot available.</p>
+                </div>
+              )}
+              {/* Fallback error container (hidden by default, shown via onError) */}
+              <div style={{ display: 'none' }} className="flex-col items-center gap-2 text-red-400">
+                <AlertCircle className="w-12 h-12 opacity-50" />
+                <p className="font-semibold">Unable to load payment screenshot.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
     </div>
   );

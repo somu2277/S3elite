@@ -7,15 +7,21 @@ const MessSubscriber = require('../models/MessSubscriber');
 
 const router = express.Router();
 
+let isSeeded = false;
+
 /**
  * Ensure database is seeded if MongoDB collection is empty
  */
 const ensureSeedMatrix = async () => {
-  const bedCount = await Bed.countDocuments();
-  if (bedCount > 0) return;
+  if (isSeeded) return;
+  const bedExists = await Bed.exists({});
+  if (bedExists) {
+    isSeeded = true;
+    return;
+  }
 
   const floorLayouts = [
-    { floorName: 'Ground Floor', rooms: [{id: 'S01', beds: 6}, {id: 'S02', beds: 6}], rent: 6500 },
+    { floorName: 'Ground Floor', rooms: [{id: 'S01', beds: 6}, {id: 'S02', beds: 6}], rent: 5500 },
     { floorName: '1st Floor', rooms: [
         {id: 'S11', beds: 4}, {id: 'S12', beds: 4}, {id: 'S13', beds: 4}, {id: 'S14', beds: 4},
         {id: 'S15', beds: 5}, {id: 'S16', beds: 5}, {id: 'S17', beds: 5}, {id: 'S18', beds: 5}
@@ -26,20 +32,25 @@ const ensureSeedMatrix = async () => {
       ], rent: 5800 },
     { floorName: '3rd Floor', rooms: [
         {id: 'S31', beds: 4}, {id: 'S32', beds: 4}, {id: 'S33', beds: 5}, {id: 'S34', beds: 5}
-      ], rent: 5500 }
+      ], rent: 5500 },
+    { floorName: 'Special Block', rooms: [{id: 'S01', beds: 6}, {id: 'S02', beds: 6}], rent: 5500 }
   ];
 
   for (const floor of floorLayouts) {
     for (const roomObj of floor.rooms) {
       const roomNum = roomObj.id;
       const capacity = roomObj.beds;
+      
+      // Calculate correct rent depending on sharing capacity if needed, but floor rent takes precedence here.
+      const exactRent = capacity === 4 ? 6000 : 5500;
+
       await Room.findOneAndUpdate(
-        { roomNumber: roomNum },
+        { roomNumber: roomNum, floor: floor.floorName === 'Ground Floor' ? 0 : floor.floorName === 'Special Block' ? 99 : parseInt(floor.floorName) },
         {
           roomNumber: roomNum,
-          floor: floor.floorName === 'Ground Floor' ? 0 : parseInt(floor.floorName),
+          floor: floor.floorName === 'Ground Floor' ? 0 : floor.floorName === 'Special Block' ? 99 : parseInt(floor.floorName),
           capacity: capacity,
-          rentPerBed: floor.rent,
+          rentPerBed: exactRent,
           type: 'AC',
           status: 'Available'
         },
@@ -48,14 +59,18 @@ const ensureSeedMatrix = async () => {
 
       for (let c = 1; c <= capacity; c++) {
         const isOccupied = (roomNum === 'S11' && c <= 2) || (roomNum === 'S12' && c === 1) || (roomNum === 'S21' && c === 1);
-        await Bed.create({
-          bedNumber: c,
-          roomNumber: roomNum,
-          floorName: floor.floorName,
-          occupied: isOccupied,
-          reservationStatus: isOccupied ? 'Occupied' : 'Available',
-          rentPerBed: floor.rent
-        });
+        await Bed.findOneAndUpdate(
+          { roomNumber: roomNum, floorName: floor.floorName, bedNumber: c },
+          {
+            bedNumber: c,
+            roomNumber: roomNum,
+            floorName: floor.floorName,
+            occupied: isOccupied,
+            reservationStatus: isOccupied ? 'Occupied' : 'Available',
+            rentPerBed: exactRent
+          },
+          { upsert: true }
+        );
       }
     }
   }
@@ -241,10 +256,10 @@ router.get('/room/:id', async (req, res) => {
  */
 router.post('/booking-request', async (req, res) => {
   try {
-    const { name, email, phone, collegeCompany, emergencyContact, aadhaar, preferredRoom, preferredBed, utrNumber, paymentScreenshot } = req.body;
+    const { name, email, phone, collegeCompany, emergencyContact, aadhaar, expectedJoiningDate, stayDuration, preferredRoom, preferredBed, utrNumber, paymentScreenshot } = req.body;
 
-    if (!name || !email || !phone || !preferredRoom || preferredBed == null) {
-      return res.status(400).json({ success: false, message: 'Missing required booking fields' });
+    if (!name || !email || !phone || !preferredRoom || preferredBed == null || !stayDuration) {
+      return res.status(400).json({ success: false, message: 'Missing required booking fields, including Stay Duration' });
     }
 
     if (!utrNumber || utrNumber.length !== 12 || !paymentScreenshot) {
@@ -272,6 +287,8 @@ router.post('/booking-request', async (req, res) => {
       collegeCompany,
       emergencyContact,
       aadhaar,
+      expectedJoiningDate,
+      stayDuration,
       preferredRoom,
       preferredBed,
       utrNumber,

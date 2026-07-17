@@ -75,45 +75,6 @@ const ContactOwnerCard = () => {
           ></iframe>
         </div>
 
-        {/* Location Details Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-6 mb-6">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-orange-50 text-primary">
-              <MapPin className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-0.5">Full Address</p>
-              <p className="text-sm font-medium text-textDark">Kodumur Road, Kurnool, AP</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-orange-50 text-primary">
-              <PhoneCall className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-0.5">Owner Contact</p>
-              <p className="text-sm font-medium text-textDark">+91 {owner.phone}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-orange-50 text-primary">
-              <Clock className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-0.5">Available for Visits</p>
-              <p className="text-sm font-medium text-textDark">9:00 AM - 7:00 PM</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-orange-50 text-primary">
-              <Building className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-0.5">Nearby Landmark</p>
-              <p className="text-sm font-medium text-textDark">2.5 km from GPREC</p>
-            </div>
-          </div>
-        </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 mt-auto">

@@ -30,6 +30,7 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
     occupation: 'Student',
     gender: 'Male',
     expectedJoiningDate: '',
+    stayDuration: '',
     aadhaar: '',
     notes: ''
   });
@@ -39,6 +40,24 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
   const [paymentScreenshotUrl, setPaymentScreenshotUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+
+  const calculateRent = () => {
+    if (!selectedRoomCot) return 6000;
+    const sharing = selectedRoomCot.sharingType || '';
+    
+    // 4 Sharing: ₹6000 / Month (S11–S18, S31–S34)
+    if (sharing.includes('4')) return 6000;
+    
+    // 5 Sharing: ₹5500 / Month (S21–S28)
+    if (sharing.includes('5')) return 5500;
+    
+    // 6 Sharing: ₹5500 / Month (S01, S02)
+    if (sharing.includes('6')) return 5500;
+    
+    return 6000; // Default
+  };
+
+  const calculatedRent = calculateRent();
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -96,7 +115,7 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
           ...formData,
           preferredRoom: selectedRoomCot.room,
           preferredBed: selectedRoomCot.cot,
-          roomRent: selectedRoomCot.rent || 6000,
+          roomRent: calculatedRent,
           utrNumber,
           paymentScreenshot: paymentScreenshotUrl
         })
@@ -169,18 +188,29 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
           )}
 
           {selectedRoomCot ? (
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 space-y-2 shadow-lg max-w-sm mx-auto text-left">
-              <div className="flex items-center gap-2 font-bold text-sm border-b border-emerald-500/20 pb-2">
+            <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 space-y-3 shadow-lg max-w-sm mx-auto text-left w-full">
+              <div className="flex items-center gap-2 font-black text-sm border-b border-emerald-500/20 pb-3 uppercase tracking-wider">
                 <BedDouble className="w-5 h-5 text-emerald-400" />
-                Selected Cot for Reservation
+                Selected Cot
               </div>
-              <p className="text-xs text-slate-200 pt-1">
-                Room <strong className="text-textDark">{selectedRoomCot.room}</strong> • Cot <strong className="text-textDark">#{selectedRoomCot.cot}</strong> ({selectedRoomCot.floor})
-              </p>
-              <div className="bg-emerald-950/40 p-2.5 rounded-lg border border-emerald-500/20 space-y-1.5 mt-2">
-                <div className="flex justify-between text-xs text-textMuted">
-                  <span>Room Rent:</span>
-                  <span className="font-semibold text-textDark">₹{selectedRoomCot.rent || 6000}</span>
+              <div className="space-y-1.5 pt-1 px-1">
+                <p className="text-sm font-medium text-slate-200 flex justify-between items-center border-b border-emerald-500/10 pb-1.5">
+                  <span className="text-emerald-400/70">Room:</span>
+                  <strong className="text-white text-base font-bold">{selectedRoomCot.room}</strong>
+                </p>
+                <p className="text-sm font-medium text-slate-200 flex justify-between items-center border-b border-emerald-500/10 pb-1.5 pt-1">
+                  <span className="text-emerald-400/70">Cot:</span>
+                  <strong className="text-white text-base font-bold">#{selectedRoomCot.cot}</strong>
+                </p>
+                <p className="text-sm font-medium text-slate-200 flex justify-between items-center pt-1">
+                  <span className="text-emerald-400/70">Sharing:</span>
+                  <strong className="text-white text-base font-bold">{selectedRoomCot.sharingType}</strong>
+                </p>
+              </div>
+              <div className="bg-emerald-950/60 p-4 rounded-xl border border-emerald-500/30 mt-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-widest text-emerald-500">Monthly Rent</span>
+                  <span className="text-2xl font-black text-emerald-400">₹{calculatedRent}</span>
                 </div>
               </div>
             </div>
@@ -374,10 +404,29 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
                       name="expectedJoiningDate"
                       value={formData.expectedJoiningDate}
                       onChange={handleChange}
+                      onClick={(e) => e.target.showPicker && e.target.showPicker()}
                       className="w-full px-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
                       required
                     />
                   </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-textMuted mb-1">Stay Duration</label>
+                  <select
+                    name="stayDuration"
+                    value={formData.stayDuration}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 bg-white border border-borderLight rounded-xl text-xs text-textDark focus:border-amber-500 focus:outline-none"
+                    required
+                  >
+                    <option value="" disabled>Select Duration</option>
+                    <option value="3 Months">3 Months</option>
+                    <option value="6 Months">6 Months</option>
+                    <option value="12 Months">12 Months</option>
+                  </select>
                 </div>
               </div>
 
@@ -422,7 +471,7 @@ const AuthPage = ({ selectedRoomCot = null, onCancel }) => {
                     
                     <div className="mt-3 inline-block bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-lg w-full">
                       <p className="text-[10px] font-bold text-textMuted uppercase tracking-wider mb-1">Amount Payable</p>
-                      <p className="text-lg font-black text-emerald-600">₹{selectedRoomCot.rent || 6000}</p>
+                      <p className="text-lg font-black text-emerald-600">₹{calculatedRent}</p>
                     </div>
                   </div>
                 </div>
