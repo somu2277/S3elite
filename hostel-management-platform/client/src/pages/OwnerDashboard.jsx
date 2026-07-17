@@ -80,6 +80,7 @@ const OwnerDashboard = () => {
   const [bookingRequests, setBookingRequests] = useState([]);
   const [messSubscribers, setMessSubscribers] = useState([]);
   const [paymentVerifications, setPaymentVerifications] = useState([]);
+  const [complaints, setComplaints] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
@@ -118,14 +119,16 @@ const OwnerDashboard = () => {
         payRes,
         bookRes,
         messRes,
-        verifRes
+        verifRes,
+        complaintsRes
       ] = await Promise.all([
         apiFetch('/api/admin/erp/stats'),
         apiFetch('/api/admin/erp/matrix'),
         apiFetch('/api/admin/erp/payments'),
         apiFetch('/api/admin/erp/booking-requests'),
         apiFetch('/api/admin/erp/mess-subscribers'),
-        apiFetch('/api/admin/erp/payment-verifications')
+        apiFetch('/api/admin/erp/payment-verifications'),
+        apiFetch('/api/complaints')
       ]);
 
       // Process responses
@@ -158,6 +161,12 @@ const OwnerDashboard = () => {
         const verifJson = await verifRes.json();
         if (verifJson.success && Array.isArray(verifJson.data)) setPaymentVerifications(verifJson.data);
       }
+
+      if (complaintsRes && complaintsRes.ok) {
+        const complaintsJson = await complaintsRes.json();
+        if (complaintsJson.success && Array.isArray(complaintsJson.data)) setComplaints(complaintsJson.data);
+      }
+
 
     } catch (err) {
       console.error('Error loading MongoDB data:', err);
@@ -335,6 +344,27 @@ const OwnerDashboard = () => {
     }
   };
 
+  const handleUpdateComplaintStatus = async (id, status) => {
+    setProcessingId(id);
+    try {
+      const res = await apiFetch(`/api/complaints/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (res.ok) {
+        fetchDashboardData(true);
+      } else {
+        const json = await res.json();
+        alert(json.message || `Error updating status to ${status}`);
+      }
+    } catch (err) {
+      alert('Network error');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   // Group real matrix beds by floor & room
   const groupedRooms = matrixBeds
     .filter((b) => b.floorName !== 'Special Block' && (filterFloor === 'All' || b.floorName === filterFloor))
@@ -407,6 +437,17 @@ const OwnerDashboard = () => {
     const emailMatch = sub.email && sub.email.toLowerCase().includes(q);
     return nameMatch || phoneMatch || emailMatch;
   });
+
+  // Filtered Complaints
+  const filteredComplaints = complaints.filter((comp) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const titleMatch = comp.title && comp.title.toLowerCase().includes(q);
+    const roomMatch = comp.roomNumber && comp.roomNumber.toLowerCase().includes(q);
+    const idMatch = comp.ticketId && comp.ticketId.toLowerCase().includes(q);
+    return titleMatch || roomMatch || idMatch;
+  });
+
 
   // Status Badge Helper
   const renderPaymentStatusBadge = (status) => {
@@ -635,6 +676,16 @@ const OwnerDashboard = () => {
           }`}
         >
           Payment Verification ({paymentVerifications.filter(p => p.paymentStatus === 'Pending Verification').length})
+        </button>
+        <button
+          onClick={() => setActiveTab('complaints')}
+          className={`px-5 py-2 rounded-full text-xs font-bold transition-all ${
+            activeTab === 'complaints'
+              ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+              : 'bg-white text-textMuted hover:text-textDark border border-borderLight hover:bg-slate-50'
+          }`}
+        >
+          Complaints ({filteredComplaints.filter(c => c.status === 'Open').length})
         </button>
 
         {/* Export Reports Dropdown */}
@@ -1192,6 +1243,85 @@ const OwnerDashboard = () => {
                 <p className="text-textMuted font-semibold text-sm">No pending payments to verify.</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 6: COMPLAINTS */}
+      {activeTab === 'complaints' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-black text-orange-500">Complaints Management</h2>
+          </div>
+          
+          <div className="rounded-2xl bg-white border border-borderLight overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-borderLight bg-slate-50">
+                    <th className="p-4 text-[11px] font-bold text-textMuted uppercase tracking-wider">Ticket / Date</th>
+                    <th className="p-4 text-[11px] font-bold text-textMuted uppercase tracking-wider">Student & Room</th>
+                    <th className="p-4 text-[11px] font-bold text-textMuted uppercase tracking-wider">Issue Details</th>
+                    <th className="p-4 text-[11px] font-bold text-textMuted uppercase tracking-wider">Status</th>
+                    <th className="p-4 text-[11px] font-bold text-textMuted uppercase tracking-wider text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-borderLight/60">
+                  {filteredComplaints.map((comp) => (
+                    <tr key={comp._id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="p-4">
+                        <div className="font-bold text-primary text-sm">{comp.ticketId}</div>
+                        <div className="text-[11px] font-semibold text-textMuted mt-0.5">{new Date(comp.createdAt).toLocaleDateString()}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="font-bold text-textDark text-sm">{comp.studentName}</div>
+                        <div className="text-[11px] font-semibold text-textMuted mt-0.5 flex items-center gap-1">Room {comp.roomNumber} - {comp.category}</div>
+                      </td>
+                      <td className="p-4 max-w-xs">
+                        <div className="font-bold text-textDark text-sm truncate">{comp.title}</div>
+                        <div className="text-[11px] text-textMuted mt-0.5 line-clamp-2">{comp.description}</div>
+                      </td>
+                      <td className="p-4">
+                        {comp.status === 'Open' && <span className="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold bg-rose-50 text-rose-600 border border-rose-200">Open</span>}
+                        {comp.status === 'In Progress' && <span className="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold bg-amber-50 text-amber-600 border border-amber-200">In Progress</span>}
+                        {comp.status === 'Resolved' && <span className="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Resolved</span>}
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          {comp.status !== 'Resolved' && (
+                            <>
+                              {comp.status === 'Open' && (
+                                <button
+                                  onClick={() => handleUpdateComplaintStatus(comp._id, 'In Progress')}
+                                  disabled={processingId === comp._id}
+                                  className="px-3 py-1.5 rounded-lg transition-all text-[11px] font-bold border bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200"
+                                >
+                                  Mark In-Progress
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleUpdateComplaintStatus(comp._id, 'Resolved')}
+                                disabled={processingId === comp._id}
+                                className="px-3 py-1.5 rounded-lg transition-all text-[11px] font-bold border bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200"
+                              >
+                                Mark Resolved
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredComplaints.length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="p-8 text-center text-textMuted text-sm font-semibold">
+                        No complaints found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

@@ -180,6 +180,18 @@ const AdminBedManagementDrawer = ({ bedId, onClose, onBedUpdated }) => {
     }
   };
 
+  const handleSendFeeReminder = () => {
+    if (!bedData || !bedData.whatsappNumber) {
+      alert('No WhatsApp number available for this student.');
+      return;
+    }
+    const amount = bedData.pendingAmount || bedData.rentPerBed || 6000;
+    const dueDate = bedData.nextDueDate || 'this month';
+    const message = `Hello ${bedData.studentName}, this is a gentle reminder from S3 Elite PG. Your rent of Rs. ${amount} was due on ${dueDate}. Please clear it at the earliest to avoid late fees. Thank you!`;
+    const phoneNum = bedData.whatsappNumber.replace(/\D/g, '');
+    window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
   if (loading || !bedData) {
     return (
       <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex justify-end">
@@ -256,7 +268,7 @@ const AdminBedManagementDrawer = ({ bedId, onClose, onBedUpdated }) => {
             <button onClick={() => setShowVacate(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[11px] font-bold hover:bg-rose-500/20 transition-all">
               <AlertTriangle className="w-3 h-3" /> Vacate Bed
             </button>
-            <button onClick={() => alert('Sending fee reminder...')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-bold hover:bg-amber-500/20 transition-all">
+            <button onClick={handleSendFeeReminder} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-bold hover:bg-amber-500/20 transition-all">
               <Send className="w-3 h-3" /> Send Fee Reminder
             </button>
           </div>
