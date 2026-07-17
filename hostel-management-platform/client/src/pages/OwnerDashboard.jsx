@@ -87,8 +87,13 @@ const OwnerDashboard = () => {
   const getImageUrl = (path) => {
     if (!path) return null;
     let normalized = path.replace(/\\/g, '/');
-    if (normalized.startsWith('uploads/')) normalized = normalized.replace('uploads/', '/api/uploads/');
-    else if (normalized.startsWith('/uploads/')) normalized = normalized.replace('/uploads/', '/api/uploads/');
+    if (normalized.startsWith('uploads/')) {
+      normalized = normalized.replace('uploads/', '/api/uploads/');
+    } else if (normalized.startsWith('/uploads/')) {
+      normalized = normalized.replace('/uploads/', '/api/uploads/');
+    } else if (!normalized.startsWith('http') && !normalized.startsWith('/api/')) {
+      normalized = `/api/uploads/${normalized.startsWith('/') ? normalized.slice(1) : normalized}`;
+    }
     return normalized;
   };
 
