@@ -264,7 +264,7 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
         </div>
 
         {/* Floating Stats Bar (Positioned overlapping the bottom) */}
-        <div className="absolute left-1/2 -translate-x-1/2 -bottom-16 w-[95%] max-w-5xl z-30">
+        <div className="relative md:absolute md:left-1/2 md:-translate-x-1/2 md:-bottom-16 w-[95%] mx-auto max-w-5xl z-30 mt-8 md:mt-0">
           <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-6 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4">
             
             {/* Stat 1 */}
