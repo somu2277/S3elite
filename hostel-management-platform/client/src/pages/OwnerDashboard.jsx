@@ -76,7 +76,6 @@ const OwnerDashboard = () => {
   });
 
   const [matrixBeds, setMatrixBeds] = useState([]);
-  const [payments, setPayments] = useState([]);
   const [bookingRequests, setBookingRequests] = useState([]);
   const [messSubscribers, setMessSubscribers] = useState([]);
   const [paymentVerifications, setPaymentVerifications] = useState([]);
@@ -121,7 +120,6 @@ const OwnerDashboard = () => {
       const [
         statsRes,
         matrixRes,
-        payRes,
         bookRes,
         messRes,
         verifRes,
@@ -129,7 +127,6 @@ const OwnerDashboard = () => {
       ] = await Promise.all([
         apiFetch('/api/admin/erp/stats'),
         apiFetch('/api/admin/erp/matrix'),
-        apiFetch('/api/admin/erp/payments'),
         apiFetch('/api/admin/erp/booking-requests'),
         apiFetch('/api/admin/erp/mess-subscribers'),
         apiFetch('/api/admin/erp/payment-verifications'),
@@ -145,11 +142,6 @@ const OwnerDashboard = () => {
       if (matrixRes.ok) {
         const matrixJson = await matrixRes.json();
         if (matrixJson.success && Array.isArray(matrixJson.data)) setMatrixBeds(matrixJson.data);
-      }
-      
-      if (payRes.ok) {
-        const payJson = await payRes.json();
-        if (payJson.success && Array.isArray(payJson.data)) setPayments(payJson.data);
       }
       
       if (bookRes.ok) {
@@ -400,6 +392,24 @@ const OwnerDashboard = () => {
     return matchRoom || matchBed;
   });
 
+  // Dynamically derive payments from occupied matrix beds
+  const payments = matrixBeds
+    .filter((b) => b.occupied || b.reservationStatus === 'Occupied')
+    .map((b) => ({
+      _id: b._id,
+      studentName: b.studentName || 'Unknown Student',
+      paymentMethod: 'UPI',
+      roomNumber: b.roomNumber,
+      bedNumber: b.bedNumber,
+      amount: b.rentPerBed || 0,
+      monthYear: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      dueDate: b.nextDueDate || 'N/A',
+      status: b.paymentStatus || 'Pending',
+      utrNumber: b.pendingAmount > 0 ? 'Pending' : 'Cleared',
+      verificationStatus: (b.paymentStatus === 'Paid' || b.paymentStatus === 'Advance Paid') ? 'Verified' : 'Pending',
+      createdAt: new Date().toISOString()
+    }));
+
   // Filtered Payments by tab & search
   const filteredPayments = payments.filter((p) => {
     // Search query match
@@ -412,9 +422,9 @@ const OwnerDashboard = () => {
     }
 
     // Payment tab match
-    if (paymentFilterTab === 'Pending') return p.verificationStatus === 'Pending Verification';
+    if (paymentFilterTab === 'Pending') return p.verificationStatus === 'Pending';
     if (paymentFilterTab === 'Verified') return p.verificationStatus === 'Verified';
-    if (paymentFilterTab === 'Overdue') return p.status === 'Overdue' || p.verificationStatus === 'Rejected';
+    if (paymentFilterTab === 'Overdue') return p.status === 'Overdue';
     if (paymentFilterTab === 'Today') {
       const todayStr = new Date().toISOString().slice(0, 10);
       return p.createdAt && p.createdAt.slice(0, 10) === todayStr;
@@ -930,22 +940,6 @@ const OwnerDashboard = () => {
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {pay.verificationStatus !== 'Verified' && (
-                            <button
-                              onClick={() => handleVerifyPayment(pay._id)}
-                              className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px] transition-all border border-emerald-200"
-                            >
-                              Verify
-                            </button>
-                          )}
-                          {pay.verificationStatus !== 'Rejected' && (
-                            <button
-                              onClick={() => handleRejectPayment(pay._id)}
-                              className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] transition-all border border-rose-200"
-                            >
-                              Reject
-                            </button>
-                          )}
                           <button
                             onClick={() => alert(`Sending reminder / WhatsApp notification to ${pay.studentName}`)}
                             className="p-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-textMuted border border-borderLight transition-all shadow-sm"
