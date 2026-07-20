@@ -100,13 +100,9 @@ const bedSchema = new mongoose.Schema(
       type: String,
       default: '15 July 2026'
     },
-    agreementStartDate: {
+    duration: {
       type: String,
-      default: '15 July 2026'
-    },
-    agreementEndDate: {
-      type: String,
-      default: '14 June 2027'
+      default: '11 Months'
     },
     rentPerBed: {
       type: Number,

@@ -69,8 +69,7 @@ const AdminBedManagementDrawer = ({ bedId, onClose, onBedUpdated }) => {
             companyName: json.data.companyName || '',
             bloodGroup: json.data.bloodGroup || '',
             joiningDate: json.data.joiningDate || '',
-            agreementStartDate: json.data.agreementStartDate || '',
-            agreementEndDate: json.data.agreementEndDate || '',
+            duration: json.data.duration || '',
             rentPerBed: json.data.rentPerBed || 0,
             securityDeposit: json.data.securityDeposit || 0,
             discount: json.data.discount || 0,
@@ -443,8 +442,7 @@ const AdminBedManagementDrawer = ({ bedId, onClose, onBedUpdated }) => {
                   {[
                     { label: 'Admission No', key: 'admissionNumber', readonly: true },
                     { label: 'Joining Date', key: 'joiningDate' },
-                    { label: 'Agreement Start', key: 'agreementStartDate' },
-                    { label: 'Agreement End', key: 'agreementEndDate' },
+                    { label: 'Duration', key: 'duration' },
                   ].map((field, idx) => (
                     <div key={idx} className="bg-slate-50 p-3 rounded-lg border border-borderLight">
                       <p className="text-[10px] text-textMuted uppercase font-bold">{field.label}</p>
