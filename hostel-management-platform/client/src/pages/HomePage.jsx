@@ -125,7 +125,7 @@ const HomePage = ({ onOpenAuth, onOpenMess, onOpenRenewRent }) => {
     fetchLiveDatabaseData();
 
     // Socket.IO real-time auto-synchronization (no page refresh required)
-    const socket = io({ transports: ['polling'] });
+    const socket = io('https://s3elite.onrender.com', { transports: ['polling'] });
     socket.on('ERP_EVENT', (event) => {
       console.log('[Socket.IO] Public website synchronizing live MongoDB update:', event?.type);
       fetchLiveDatabaseData();
