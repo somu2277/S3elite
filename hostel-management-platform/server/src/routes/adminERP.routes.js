@@ -39,18 +39,18 @@ const ensureSeedMatrix = async () => {
   if (bedCount > 0) return;
 
   const floorLayouts = [
-    { floorName: 'Ground Floor', rooms: [{id: 'S01', beds: 6}, {id: 'S02', beds: 6}], rent: 6500 },
+    { floorName: 'Ground Floor', rooms: [{id: 'S01', beds: 6}, {id: 'S02', beds: 6}] },
     { floorName: '1st Floor', rooms: [
         {id: 'S11', beds: 4}, {id: 'S12', beds: 4}, {id: 'S13', beds: 4}, {id: 'S14', beds: 4},
         {id: 'S15', beds: 5}, {id: 'S16', beds: 5}, {id: 'S17', beds: 5}, {id: 'S18', beds: 5}
-      ], rent: 6000 },
+      ] },
     { floorName: '2nd Floor', rooms: [
         {id: 'S21', beds: 4}, {id: 'S22', beds: 4}, {id: 'S23', beds: 4}, {id: 'S24', beds: 4},
         {id: 'S25', beds: 5}, {id: 'S26', beds: 5}, {id: 'S27', beds: 5}, {id: 'S28', beds: 5}
-      ], rent: 5800 },
+      ] },
     { floorName: '3rd Floor', rooms: [
         {id: 'S31', beds: 4}, {id: 'S32', beds: 4}, {id: 'S33', beds: 5}, {id: 'S34', beds: 5}
-      ], rent: 5500 }
+      ] }
   ];
 
   const sampleResidents = [
@@ -158,13 +158,14 @@ const ensureSeedMatrix = async () => {
     for (const roomObj of floor.rooms) {
       const roomNum = roomObj.id;
       const capacity = roomObj.beds;
+      const roomRent = capacity === 4 ? 6000 : 5500;
       await Room.findOneAndUpdate(
         { roomNumber: roomNum },
         {
           roomNumber: roomNum,
           floor: floor.floorName === 'Ground Floor' ? 0 : parseInt(floor.floorName),
           capacity: capacity,
-          rentPerBed: floor.rent,
+          rentPerBed: roomRent,
           type: 'AC',
           status: 'Available'
         },
@@ -199,7 +200,7 @@ const ensureSeedMatrix = async () => {
           admissionDate: resident ? resident.admissionDate : '15 July 2026',
           joiningDate: resident ? resident.joiningDate : '15 July 2026',
           duration: resident ? resident.duration : '11 Months',
-          rentPerBed: resident ? resident.rentPerBed : floor.rent,
+          rentPerBed: resident ? resident.rentPerBed : roomRent,
           securityDeposit: resident ? resident.securityDeposit : 5000,
           pendingAmount: resident ? resident.pendingAmount : 0,
           lastPaymentDate: resident ? resident.lastPaymentDate : '05 July 2026',
