@@ -842,6 +842,24 @@ router.put('/payment-verifications/:type/:id/verify', async (req, res) => {
         bed.admissionDate = new Date().toISOString().slice(0, 10);
         bed.joiningDate = new Date().toISOString().slice(0, 10);
         await bed.save();
+
+        // Create Payment Ledger entry for Initial PG Booking
+        await Payment.create({
+          studentName: request.name,
+          roomNumber: bed.roomNumber,
+          bedNumber: bed.bedNumber,
+          totalAmount: bed.rentPerBed,
+          paymentMethod: 'UPI',
+          upiApp: 'Google Pay', // Defaulting as we don't capture the specific app yet
+          utrNumber: request.utrNumber || 'N/A',
+          verificationStatus: 'Verified',
+          status: 'Successful',
+          transactionId: 'TXN-B-' + Date.now(),
+          monthYear: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+          paymentType: 'Initial PG Booking',
+          receiptNumber: 'REC-B-' + Date.now()
+        });
+
         emitSocketEvent(req, 'STUDENT_ADMITTED', { bedId: bed._id, studentName: request.name });
       }
     } else if (type === 'Mess') {
