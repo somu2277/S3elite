@@ -9,6 +9,7 @@ const publicRoutes = require('./routes/public.routes');
 const roomRoutes = require('./routes/room.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const complaintRoutes = require('./routes/complaint.routes');
+const rentRenewalRoutes = require('./routes/rentRenewal.routes');
 const startPaymentReminderJobs = require('./jobs/paymentReminder.job');
 
 const uploadRoutes = require('./routes/upload.routes');
@@ -32,6 +33,7 @@ app.use('/api/public', publicRoutes);
 app.use('/api/public', uploadRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/rent-renewal', rentRenewalRoutes);
 
 // Protected Admin Routes (Strict RBAC)
 app.use('/api/admin/erp', protect, authorize('admin'), adminERPRoutes);

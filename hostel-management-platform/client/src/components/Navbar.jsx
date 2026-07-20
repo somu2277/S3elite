@@ -9,10 +9,11 @@ import {
   LogIn,
   Wifi,
   Image as ImageIcon,
-  PhoneCall
+  PhoneCall,
+  Calendar
 } from 'lucide-react';
 
-const Navbar = ({ user, onLogout, currentView, setCurrentView, onOpenAuth }) => {
+const Navbar = ({ user, onLogout, currentView, setCurrentView, onOpenAuth, onOpenRenewRent }) => {
   return (
     <nav className="glass-header">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
@@ -76,6 +77,14 @@ const Navbar = ({ user, onLogout, currentView, setCurrentView, onOpenAuth }) => 
               </div>
             ) : (
               <div className="flex items-center gap-1.5 sm:gap-2.5">
+                <button
+                  onClick={onOpenRenewRent}
+                  className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-white border border-borderLight hover:border-primary text-primary text-[10px] sm:text-xs font-bold transition-all shadow-sm hover:shadow-md"
+                >
+                  <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span className="hidden sm:inline">Renew / Pay Rent</span>
+                  <span className="sm:hidden">Renew</span>
+                </button>
                 <a
                   href="#floor-availability"
                   onClick={() => setCurrentView('home')}

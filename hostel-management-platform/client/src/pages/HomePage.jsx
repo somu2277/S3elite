@@ -34,7 +34,7 @@ const facilities = [
   { icon: Utensils, title: 'Monthly Mess Available', desc: 'Fresh hygienic breakfast, lunch, and dinner with affordable monthly mess plans for residents and external customers.' }
 ];
 
-const HomePage = ({ onOpenAuth, onOpenMess }) => {
+const HomePage = ({ onOpenAuth, onOpenMess, onOpenRenewRent }) => {
   const [lastRefreshed, setLastRefreshed] = useState('Just now');
   const [selectedFloorDropdown, setSelectedFloorDropdown] = useState('All');
   const [collapsedFloors, setCollapsedFloors] = useState({});
@@ -232,6 +232,13 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
                 Book Your Bed
                 <ArrowRight className="w-4 h-4" />
               </a>
+              <button
+                onClick={() => onOpenRenewRent()}
+                className="flex items-center gap-2 px-8 py-4 rounded-xl bg-white border border-gray-200 hover:border-orange-500 text-orange-500 font-bold text-sm transition-transform hover:-translate-y-0.5 shadow-sm hover:shadow-md"
+              >
+                <DollarSign className="w-4 h-4" />
+                Renew / Pay Rent
+              </button>
               <button
                 onClick={() => onOpenMess()}
                 className="flex items-center gap-2 px-8 py-4 rounded-xl bg-white border border-gray-200 text-gray-800 font-bold text-sm transition-transform hover:-translate-y-0.5 shadow-sm hover:shadow-md"
@@ -436,7 +443,7 @@ const HomePage = ({ onOpenAuth, onOpenMess }) => {
                           <div className="p-5 flex flex-col flex-1">
                             {/* Room Header: Number & Badge */}
                             <div className="flex items-center justify-between mb-2">
-                              <h3 className="text-2xl font-black text-gray-900 tracking-tight">{room.id}</h3>
+                              <h3 className="text-2xl font-black text-gray-900 tracking-tight">{room.id.replace('SB', 'S')}</h3>
                               <div className="bg-green-100 text-green-700 px-3 py-1 rounded-md text-xs font-bold capitalize">
                                 {room.free} Beds Available
                               </div>

@@ -135,8 +135,7 @@ router.get('/statistics', async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('STATISTICS ERROR:', err);
-    return res.status(500).json({ success: false, message: err.message, stack: err.stack });
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -195,8 +194,7 @@ router.get('/rooms', async (req, res) => {
       data: Object.values(roomsMap)
     });
   } catch (err) {
-    console.error('ROOMS API ERROR:', err);
-    return res.status(500).json({ success: false, message: err.message, stack: err.stack });
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
 

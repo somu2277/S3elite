@@ -7,6 +7,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import MessRegistrationPage from './pages/MessRegistrationPage';
 import OwnerDashboard from './pages/OwnerDashboard';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
+import RenewRentModal from './components/RenewRentModal';
 
 const App = () => {
   const [user, setUser] = useState(() => {
@@ -19,6 +20,7 @@ const App = () => {
     return 'home';
   });
   const [selectedRoomCot, setSelectedRoomCot] = useState(null);
+  const [isRenewRentModalOpen, setIsRenewRentModalOpen] = useState(false);
 
   // Check initial URL path or hash for hidden /admin or /admin/login gateway
   useEffect(() => {
@@ -111,7 +113,7 @@ const App = () => {
     }
 
     // 5. Default Public Website
-    return <HomePage onOpenAuth={handleOpenBooking} onOpenMess={handleOpenMess} />;
+    return <HomePage onOpenAuth={handleOpenBooking} onOpenMess={handleOpenMess} onOpenRenewRent={() => setIsRenewRentModalOpen(true)} />;
   };
 
   return (
@@ -124,8 +126,11 @@ const App = () => {
           currentView={currentView}
           setCurrentView={setCurrentView}
           onOpenAuth={handleOpenBooking}
+          onOpenRenewRent={() => setIsRenewRentModalOpen(true)}
         />
       )}
+
+      {isRenewRentModalOpen && <RenewRentModal onClose={() => setIsRenewRentModalOpen(false)} />}
 
       <main className="flex-1">
         {renderContent()}

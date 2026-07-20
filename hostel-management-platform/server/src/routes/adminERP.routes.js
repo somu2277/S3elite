@@ -8,6 +8,7 @@ const Payment = require('../models/Payment');
 const Complaint = require('../models/Complaint');
 const BookingRequest = require('../models/BookingRequest');
 const MessSubscriber = require('../models/MessSubscriber');
+const RentRenewal = require('../models/RentRenewal');
 
 const router = express.Router();
 
@@ -771,10 +772,20 @@ router.get('/payment-verifications', async (req, res) => {
   try {
     const bookings = await BookingRequest.find({ paymentStatus: 'Pending Verification' }).lean();
     const messSubs = await MessSubscriber.find({ paymentStatus: 'Pending Verification' }).lean();
+    const rentRenewals = await RentRenewal.find({ verificationStatus: 'Pending Verification' }).lean();
 
     const unified = [
       ...bookings.map(b => ({ ...b, applicationType: 'PG Booking' })),
-      ...messSubs.map(m => ({ ...m, applicationType: 'Monthly Mess' }))
+      ...messSubs.map(m => ({ ...m, applicationType: 'Monthly Mess' })),
+      ...rentRenewals.map(r => ({ 
+        ...r, 
+        applicationType: 'Rent Renewal',
+        name: r.residentName,
+        preferredRoom: r.roomNumber,
+        preferredBed: r.bedNumber,
+        plan: r.renewalDuration + ' Month(s)',
+        applicationId: r.bookingId
+      }))
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     return res.status(200).json({ success: true, data: unified });
@@ -870,6 +881,107 @@ router.put('/payment-verifications/:type/:id/reject', async (req, res) => {
   } catch (err) {
     console.error('REJECT ERROR:', err);
     return res.status(500).json({ success: false, message: err.message, stack: err.stack });
+  }
+});
+/**
+ * GET /api/admin/erp/rent-renewals
+ * Fetch all rent renewals
+ */
+router.get('/rent-renewals', async (req, res) => {
+  try {
+    const RentRenewal = require('../models/RentRenewal');
+    const renewals = await RentRenewal.find().sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, data: renewals });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * PUT /api/admin/erp/rent-renewals/:id/verify
+ * Verify a rent renewal, extend bed nextDueDate, and record payment
+ */
+router.put('/rent-renewals/:id/verify', async (req, res) => {
+  try {
+    const RentRenewal = require('../models/RentRenewal');
+    const Bed = require('../models/Bed');
+    const Payment = require('../models/Payment');
+    
+    const renewal = await RentRenewal.findById(req.params.id);
+    if (!renewal) {
+      return res.status(404).json({ success: false, message: 'Renewal not found.' });
+    }
+    if (renewal.verificationStatus === 'Verified') {
+      return res.status(400).json({ success: false, message: 'Renewal is already verified.' });
+    }
+
+    // 1. Update the bed
+    const bed = await Bed.findById(renewal.residentBed);
+    if (bed) {
+      // Calculate new due date (extend by renewalDuration months)
+      let currentDueDate = new Date(bed.nextDueDate || new Date());
+      currentDueDate.setMonth(currentDueDate.getMonth() + renewal.renewalDuration);
+      
+      bed.nextDueDate = currentDueDate.toISOString();
+      bed.paymentStatus = 'Paid';
+      bed.lastPaymentDate = new Date().toISOString();
+      await bed.save();
+    }
+
+    // 2. Create the payment ledger entry
+    const newPayment = await Payment.create({
+      bedId: renewal.residentBed,
+      studentName: renewal.residentName,
+      roomNumber: renewal.roomNumber,
+      bedNumber: renewal.bedNumber,
+      totalAmount: renewal.amount,
+      paymentType: 'PG Rent Renewal', // The new specific type
+      verificationStatus: 'Verified',
+      status: 'Successful',
+      utrNumber: renewal.utrNumber,
+      transactionId: 'REN-' + Date.now(),
+      monthYear: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+      billingPeriod: `${new Date(renewal.previousPaidUntil).toLocaleString('en-US', { month: 'short', year: 'numeric' })} - ${new Date(renewal.proposedNewPaidUntil).toLocaleString('en-US', { month: 'short', year: 'numeric' })}`
+    });
+
+    // 3. Mark renewal as verified
+    renewal.verificationStatus = 'Verified';
+    renewal.status = 'Successful';
+    await renewal.save();
+
+    // Broadcast refresh
+    emitSocketEvent(req, 'RENT_RENEWAL_VERIFIED', renewal);
+
+    return res.status(200).json({ success: true, data: renewal });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * PUT /api/admin/erp/rent-renewals/:id/reject
+ * Reject a rent renewal
+ */
+router.put('/rent-renewals/:id/reject', async (req, res) => {
+  try {
+    const RentRenewal = require('../models/RentRenewal');
+    const { reason } = req.body;
+    
+    const renewal = await RentRenewal.findById(req.params.id);
+    if (!renewal) {
+      return res.status(404).json({ success: false, message: 'Renewal not found.' });
+    }
+
+    renewal.verificationStatus = 'Rejected';
+    renewal.status = 'Failed';
+    renewal.rejectionReason = reason;
+    await renewal.save();
+
+    emitSocketEvent(req, 'RENT_RENEWAL_REJECTED', renewal);
+
+    return res.status(200).json({ success: true, data: renewal });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
   }
 });
 

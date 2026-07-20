@@ -76,7 +76,9 @@ const OwnerDashboard = () => {
   });
 
   const [matrixBeds, setMatrixBeds] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [bookingRequests, setBookingRequests] = useState([]);
+  const [rentRenewals, setRentRenewals] = useState([]);
   const [messSubscribers, setMessSubscribers] = useState([]);
   const [paymentVerifications, setPaymentVerifications] = useState([]);
   const [complaints, setComplaints] = useState([]);
@@ -116,18 +118,21 @@ const OwnerDashboard = () => {
   const fetchDashboardData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      // Fire all 6 fetch requests simultaneously
       const [
         statsRes,
         matrixRes,
+        payRes,
         bookRes,
+        rentRes,
         messRes,
         verifRes,
         complaintsRes
       ] = await Promise.all([
         apiFetch('/api/admin/erp/stats'),
         apiFetch('/api/admin/erp/matrix'),
+        apiFetch('/api/admin/erp/payments'),
         apiFetch('/api/admin/erp/booking-requests'),
+        apiFetch('/api/admin/erp/rent-renewals'),
         apiFetch('/api/admin/erp/mess-subscribers'),
         apiFetch('/api/admin/erp/payment-verifications'),
         apiFetch('/api/complaints')
@@ -144,9 +149,19 @@ const OwnerDashboard = () => {
         if (matrixJson.success && Array.isArray(matrixJson.data)) setMatrixBeds(matrixJson.data);
       }
       
+      if (payRes.ok) {
+        const payJson = await payRes.json();
+        if (payJson.success && Array.isArray(payJson.data)) setPayments(payJson.data);
+      }
+      
       if (bookRes.ok) {
         const bookJson = await bookRes.json();
         if (bookJson.success && Array.isArray(bookJson.data)) setBookingRequests(bookJson.data);
+      }
+
+      if (rentRes && rentRes.ok) {
+        const rentJson = await rentRes.json();
+        if (rentJson.success && Array.isArray(rentJson.data)) setRentRenewals(rentJson.data);
       }
       
       if (messRes.ok) {
@@ -224,6 +239,8 @@ const OwnerDashboard = () => {
   };
 
   const handleVerifyApplicationPayment = async (type, id) => {
+    if (type === 'Rent Renewal') return handleVerifyRentRenewal(id);
+    
     setProcessingId(id);
     try {
       const apiType = type === 'PG Booking' ? 'Booking' : 'Mess';
@@ -242,6 +259,8 @@ const OwnerDashboard = () => {
   };
 
   const handleRejectApplicationPayment = async (type, id) => {
+    if (type === 'Rent Renewal') return handleRejectRentRenewal(id);
+
     const reason = window.prompt("Enter rejection reason:");
     if (reason === null) return;
     
@@ -264,6 +283,111 @@ const OwnerDashboard = () => {
     } finally {
       setProcessingId(null);
     }
+  };
+  const handleVerifyRentRenewal = async (id) => {
+    setProcessingId(id);
+    try {
+      const res = await apiFetch(`/api/admin/erp/rent-renewals/${id}/verify`, { method: 'PUT' });
+      if (res.ok) {
+        fetchDashboardData(true);
+      } else {
+        const json = await res.json();
+        alert(json.message || 'Error verifying rent renewal');
+      }
+    } catch (err) {
+      alert('Network error');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleRejectRentRenewal = async (id) => {
+    const reason = window.prompt("Enter rejection reason:");
+    if (reason === null) return;
+    
+    setProcessingId(id);
+    try {
+      const res = await apiFetch(`/api/admin/erp/rent-renewals/${id}/reject`, { 
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
+      });
+      if (res.ok) {
+        fetchDashboardData(true);
+      } else {
+        const json = await res.json();
+        alert(json.message || 'Error rejecting rent renewal');
+      }
+    } catch (err) {
+      alert('Network error');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+
+  const handleSendWhatsAppReminder = (pay) => {
+    const message = `Hello ${pay.studentName || 'Student'},\n\nThis is a gentle reminder regarding your payment of ₹${pay.totalAmount || pay.amount} for Room ${pay.roomNumber}, Cot ${pay.bedNumber} at S3 Elite PG.\n\nPlease process the payment at your earliest convenience or contact the admin if you have any questions.\n\nThank you,\nS3 Elite PG Admin`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const handleDownloadReceipt = (pay) => {
+    const receiptContent = `
+      <html>
+        <head>
+          <title>Receipt ${pay.receiptNumber || 'REC-XXXX'}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #1e293b; background: #f8fafc; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
+            .header { text-align: center; margin-bottom: 40px; border-bottom: 2px dashed #e2e8f0; padding-bottom: 20px; }
+            .header h1 { color: #f97316; margin: 0 0 5px 0; font-size: 28px; font-weight: 900; }
+            .header p { color: #64748b; margin: 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+            .row { display: flex; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; font-size: 14px; }
+            .row strong { color: #475569; }
+            .row span { font-weight: 600; text-align: right; }
+            .total-row { display: flex; justify-content: space-between; margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0; font-size: 18px; font-weight: 900; color: #0f172a; }
+            .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #94a3b8; font-weight: 500; }
+            @media print {
+              body { background: white; padding: 0; }
+              .container { box-shadow: none; border: none; padding: 20px; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>S3 Elite PG</h1>
+              <p>Official Payment Receipt</p>
+            </div>
+            <div class="row"><strong>Receipt No:</strong> <span>${pay.receiptNumber || `REC-${pay._id.slice(-6).toUpperCase()}`}</span></div>
+            <div class="row"><strong>Date:</strong> <span>${new Date(pay.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span></div>
+            <div class="row"><strong>Student Name:</strong> <span>${pay.studentName || 'N/A'}</span></div>
+            <div class="row"><strong>Room / Bed:</strong> <span>Room ${pay.roomNumber} - Cot ${pay.bedNumber}</span></div>
+            <div class="row"><strong>Payment Type:</strong> <span>${pay.paymentType || 'Initial PG Booking'}</span></div>
+            <div class="row"><strong>Billing Period:</strong> <span>${pay.billingPeriod || pay.monthYear || 'N/A'}</span></div>
+            <div class="row"><strong>Payment Method:</strong> <span>${pay.paymentMethod || 'UPI'}</span></div>
+            <div class="row"><strong>Transaction ID:</strong> <span>${pay.transactionId || pay.utrNumber || 'N/A'}</span></div>
+            <div class="row"><strong>Status:</strong> <span style="color: #10b981;">${pay.verificationStatus || pay.status || 'Verified'}</span></div>
+            
+            <div class="total-row">
+              <span>Total Amount Paid:</span>
+              <span>₹${pay.totalAmount?.toLocaleString() || pay.amount?.toLocaleString()}</span>
+            </div>
+
+            <div class="footer">
+              <p>This is a computer-generated receipt and does not require a physical signature.</p>
+              <p>© ${new Date().getFullYear()} S3 Elite PG. All rights reserved.</p>
+            </div>
+          </div>
+          <script>
+            window.onload = () => { setTimeout(() => { window.print(); }, 500); };
+          </script>
+        </body>
+      </html>
+    `;
+    const blob = new Blob([receiptContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
   };
 
   const handleOpenBedDrawer = async (bed) => {
@@ -392,24 +516,6 @@ const OwnerDashboard = () => {
     return matchRoom || matchBed;
   });
 
-  // Dynamically derive payments from occupied matrix beds
-  const payments = matrixBeds
-    .filter((b) => b.occupied || b.reservationStatus === 'Occupied')
-    .map((b) => ({
-      _id: b._id,
-      studentName: b.studentName || 'Unknown Student',
-      paymentMethod: 'UPI',
-      roomNumber: b.roomNumber,
-      bedNumber: b.bedNumber,
-      amount: b.rentPerBed || 0,
-      monthYear: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-      dueDate: b.nextDueDate || 'N/A',
-      status: b.paymentStatus || 'Pending',
-      utrNumber: b.pendingAmount > 0 ? 'Pending' : 'Cleared',
-      verificationStatus: (b.paymentStatus === 'Paid' || b.paymentStatus === 'Advance Paid') ? 'Verified' : 'Pending',
-      createdAt: new Date().toISOString()
-    }));
-
   // Filtered Payments by tab & search
   const filteredPayments = payments.filter((p) => {
     // Search query match
@@ -422,13 +528,33 @@ const OwnerDashboard = () => {
     }
 
     // Payment tab match
-    if (paymentFilterTab === 'Pending') return p.verificationStatus === 'Pending';
+    if (paymentFilterTab === 'Pending') return p.verificationStatus === 'Pending Verification';
     if (paymentFilterTab === 'Verified') return p.verificationStatus === 'Verified';
     if (paymentFilterTab === 'Overdue') return p.status === 'Overdue';
     if (paymentFilterTab === 'Today') {
       const todayStr = new Date().toISOString().slice(0, 10);
       return p.createdAt && p.createdAt.slice(0, 10) === todayStr;
     }
+    if (paymentFilterTab === 'Monthly') {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      return p.createdAt && p.createdAt.slice(0, 7) === currentMonth;
+    }
+    return true;
+  });
+
+  // Filtered Rent Renewals
+  const [rentRenewalFilterTab, setRentRenewalFilterTab] = useState('Pending'); // 'Pending' | 'Verified' | 'Rejected' | 'All'
+  const filteredRentRenewals = rentRenewals.filter((r) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const nameMatch = r.residentName && r.residentName.toLowerCase().includes(q);
+    const roomMatch = r.roomNumber && r.roomNumber.toLowerCase().includes(q);
+    const utrMatch = r.utrNumber && r.utrNumber.toLowerCase().includes(q);
+    return nameMatch || roomMatch || utrMatch;
+  }).filter((r) => {
+    if (rentRenewalFilterTab === 'Pending') return r.verificationStatus === 'Pending Verification';
+    if (rentRenewalFilterTab === 'Verified') return r.verificationStatus === 'Verified';
+    if (rentRenewalFilterTab === 'Rejected') return r.verificationStatus === 'Rejected';
     return true;
   });
 
@@ -673,6 +799,16 @@ const OwnerDashboard = () => {
           Booking Requests ({filteredBookings.filter(r => r.status === 'Pending').length})
         </button>
         <button
+          onClick={() => setActiveTab('rent-renewals')}
+          className={`px-5 py-2 rounded-full text-xs font-bold transition-all ${
+            activeTab === 'rent-renewals'
+              ? 'bg-primary text-white shadow-md shadow-primary/20'
+              : 'bg-white text-textMuted hover:text-textDark border border-borderLight hover:bg-slate-50'
+          }`}
+        >
+          Rent Renewals ({rentRenewals.filter(r => r.verificationStatus === 'Pending Verification').length})
+        </button>
+        <button
           onClick={() => setActiveTab('mess')}
           className={`px-5 py-2 rounded-full text-xs font-bold transition-all ${
             activeTab === 'mess'
@@ -800,7 +936,7 @@ const OwnerDashboard = () => {
                   <div>
                     <h3 className="text-lg font-black text-textDark flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-primary" />
-                      Room {room.roomNumber}
+                      Room {room.roomNumber.replace('SB', 'S')}
                     </h3>
                     <span className="text-[10px] uppercase tracking-wider font-bold text-textMuted mt-1 block">
                       {room.floorName}
@@ -893,13 +1029,13 @@ const OwnerDashboard = () => {
                   <tr className="border-b border-borderLight bg-slate-50 text-[11px] font-bold uppercase text-textMuted tracking-wider">
                     <th className="p-4">Student</th>
                     <th className="p-4">Room / Bed</th>
-                    <th className="p-4">Monthly Rent</th>
-                    <th className="p-4">Month</th>
-                    <th className="p-4">Due Date</th>
+                    <th className="p-4">Payment Type</th>
+                    <th className="p-4">Amount Paid</th>
+                    <th className="p-4">Billing Period</th>
+                    <th className="p-4">Payment Date</th>
                     <th className="p-4">Status</th>
                     <th className="p-4">UTR Number</th>
-                    <th className="p-4">Verification</th>
-                    <th className="p-4 text-right">Admin Actions</th>
+                    <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-borderLight/60 text-sm font-medium">
@@ -920,35 +1056,23 @@ const OwnerDashboard = () => {
                          <div className="font-bold text-primary text-sm">Room {pay.roomNumber}</div>
                          <div className="text-[10px] font-semibold text-textMuted uppercase mt-0.5">Cot {pay.bedNumber}</div>
                       </td>
-                      <td className="p-4 font-black text-textDark">₹{pay.amount?.toLocaleString()}</td>
-                      <td className="p-4 text-textMuted font-semibold text-sm">{pay.monthYear || 'July 2026'}</td>
-                      <td className="p-4 text-textMuted text-xs flex items-center gap-1.5"><Calendar className="w-3 h-3"/> 05 August 2026</td>
-                      <td className="p-4">{renderPaymentStatusBadge(pay.status || 'Paid')}</td>
+                      <td className="p-4 font-bold text-textDark text-xs">{pay.paymentType || 'Initial PG Booking'}</td>
+                      <td className="p-4 font-black text-textDark">₹{pay.totalAmount?.toLocaleString() || pay.amount?.toLocaleString()}</td>
+                      <td className="p-4 text-textMuted font-semibold text-xs">{pay.billingPeriod || pay.monthYear}</td>
+                      <td className="p-4 text-textMuted text-xs flex items-center gap-1.5"><Calendar className="w-3 h-3"/> {new Date(pay.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                      <td className="p-4">{renderPaymentStatusBadge(pay.verificationStatus || pay.status || 'Verified')}</td>
                       <td className="p-4 font-mono text-textDark font-bold text-xs">{pay.utrNumber}</td>
-                      <td className="p-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] uppercase font-bold ${
-                            pay.verificationStatus === 'Verified'
-                              ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                              : pay.verificationStatus === 'Rejected'
-                              ? 'bg-rose-50 text-rose-600 border border-rose-200'
-                              : 'bg-amber-50 text-amber-600 border border-amber-200'
-                          }`}
-                        >
-                          {pay.verificationStatus}
-                        </span>
-                      </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => alert(`Sending reminder / WhatsApp notification to ${pay.studentName}`)}
+                            onClick={() => handleSendWhatsAppReminder(pay)}
                             className="p-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-textMuted border border-borderLight transition-all shadow-sm"
                             title="Send WhatsApp Reminder"
                           >
                             <Send className="w-3.5 h-3.5 text-emerald-500" />
                           </button>
                           <button
-                            onClick={() => alert(`Downloading official PDF Receipt ${pay.receiptNumber || 'REC-2026'}`)}
+                            onClick={() => handleDownloadReceipt(pay)}
                             className="p-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-textMuted border border-borderLight transition-all shadow-sm"
                             title="Download Receipt"
                           >
@@ -1039,6 +1163,125 @@ const OwnerDashboard = () => {
                     <tr>
                       <td colSpan="5" className="p-8 text-center text-textMuted text-sm">
                         No booking requests found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3.5: RENT RENEWALS */}
+      {activeTab === 'rent-renewals' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black text-textDark">Rent Renewals</h2>
+            <div className="flex bg-slate-50 p-1 rounded-xl border border-borderLight shadow-sm">
+              {['Pending', 'Verified', 'Rejected', 'All'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setRentRenewalFilterTab(tab)}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    rentRenewalFilterTab === tab
+                      ? 'bg-white text-primary shadow-sm border border-borderLight'
+                      : 'text-textMuted hover:text-textDark hover:bg-white/50'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-borderLight shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-borderLight">
+                    <th className="p-4 text-xs font-bold text-textMuted uppercase tracking-wider">Resident</th>
+                    <th className="p-4 text-xs font-bold text-textMuted uppercase tracking-wider">Room/Cot</th>
+                    <th className="p-4 text-xs font-bold text-textMuted uppercase tracking-wider">Amount / UTR</th>
+                    <th className="p-4 text-xs font-bold text-textMuted uppercase tracking-wider">Dates & Status</th>
+                    <th className="p-4 text-xs font-bold text-textMuted uppercase tracking-wider text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-borderLight/60">
+                  {filteredRentRenewals.map((req) => (
+                    <tr key={req._id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="p-4">
+                        <div className="font-bold text-textDark text-sm">{req.residentName}</div>
+                        <div className="text-[11px] font-semibold text-textMuted mt-0.5">
+                          {req.phone}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm font-bold text-primary">Room {req.roomNumber}</div>
+                        <div className="text-[11px] font-semibold text-textMuted uppercase mt-0.5">Cot {req.bedNumber}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm font-bold text-textDark">₹{req.amount}</div>
+                        <div className="text-[11px] font-semibold text-textMuted mt-0.5 font-mono">
+                          {req.utrNumber}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-[11px] text-textMuted flex flex-col gap-1">
+                          <span className="font-bold">Current: <span className="text-textDark">{new Date(req.previousPaidUntil).toLocaleDateString()}</span></span>
+                          <span className="font-bold">Proposed: <span className="text-primary">{new Date(req.proposedNewPaidUntil).toLocaleDateString()}</span></span>
+                        </div>
+                        <div className="mt-2">
+                          {req.verificationStatus === 'Pending Verification' && <span className="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold bg-amber-50 text-amber-600 border border-amber-200">Pending</span>}
+                          {req.verificationStatus === 'Verified' && <span className="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Verified</span>}
+                          {req.verificationStatus === 'Rejected' && <span className="px-2.5 py-1 rounded-full text-[10px] uppercase font-bold bg-rose-50 text-rose-600 border border-rose-200">Rejected</span>}
+                        </div>
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex flex-col items-end gap-2">
+                          {req.paymentScreenshot && (
+                            <button
+                              onClick={() => setPreviewImage({
+                                ...req,
+                                name: req.residentName,
+                                preferredRoom: req.roomNumber,
+                                preferredBed: req.bedNumber
+                              })}
+                              className="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1"
+                            >
+                              <ExternalLink className="w-3 h-3" /> View Payment
+                            </button>
+                          )}
+                          {req.verificationStatus === 'Pending Verification' && (
+                            <div className="flex justify-end gap-2 mt-2">
+                              <button
+                                onClick={() => handleVerifyRentRenewal(req._id)}
+                                disabled={processingId === req._id}
+                                className={`px-3 py-1.5 rounded-lg transition-all text-[11px] font-bold border ${
+                                  processingId === req._id ? 'bg-slate-50 text-textMuted border-borderLight cursor-not-allowed' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
+                                }`}
+                              >
+                                Verify
+                              </button>
+                              <button
+                                onClick={() => handleRejectRentRenewal(req._id)}
+                                disabled={processingId === req._id}
+                                className={`px-3 py-1.5 rounded-lg transition-all text-[11px] font-bold border ${
+                                  processingId === req._id ? 'bg-slate-50 text-textMuted border-borderLight cursor-not-allowed' : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
+                                }`}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredRentRenewals.length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="p-8 text-center text-textMuted text-sm">
+                        No rent renewals found.
                       </td>
                     </tr>
                   )}
@@ -1188,10 +1431,16 @@ const OwnerDashboard = () => {
                       <p className="text-[10px] text-textMuted uppercase font-bold">Contact</p>
                       <p className="text-sm font-semibold text-textDark flex items-center gap-1"><Phone className="w-3 h-3 text-textMuted"/> {req.phone}</p>
                     </div>
-                    {req.applicationType === 'PG Booking' && (
+                    {(req.applicationType === 'PG Booking' || req.applicationType === 'Rent Renewal') && (
                       <div>
                         <p className="text-[10px] text-textMuted uppercase font-bold">Room / Cot</p>
-                        <p className="text-sm font-semibold text-textDark">Room {req.preferredRoom}, Cot {req.preferredBed}</p>
+                        <p className="text-sm font-semibold text-textDark">Room {req.preferredRoom.replace('SB', 'S')}, Cot {req.preferredBed}</p>
+                      </div>
+                    )}
+                    {req.applicationType === 'Rent Renewal' && (
+                      <div>
+                        <p className="text-[10px] text-textMuted uppercase font-bold">Duration</p>
+                        <p className="text-sm font-semibold text-textDark">{req.plan}</p>
                       </div>
                     )}
                     {req.applicationType === 'Monthly Mess' && (

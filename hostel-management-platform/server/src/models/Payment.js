@@ -4,17 +4,17 @@ const paymentSchema = new mongoose.Schema(
   {
     student: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Student',
-      required: true
+      ref: 'Student'
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
+      ref: 'User'
+    },
+    studentName: {
+      type: String
     },
     roomRent: {
-      type: Number,
-      required: true
+      type: Number
     },
     messCharge: {
       type: Number,
@@ -72,9 +72,16 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       required: true
     },
-    receiptNumber: {
+    billingPeriod: {
+      type: String
+    },
+    paymentType: {
       type: String,
-      required: true
+      enum: ['Initial PG Booking', 'PG Rent Renewal', 'Monthly Mess'],
+      default: 'Initial PG Booking'
+    },
+    receiptNumber: {
+      type: String
     }
   },
   {
