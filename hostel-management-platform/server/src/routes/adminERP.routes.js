@@ -619,6 +619,16 @@ router.put('/transfer', async (req, res) => {
     oldBed.activityTimeline = [];
     await oldBed.save();
 
+    // Transfer Payments and Complaints to the new bed
+    await Payment.updateMany(
+      { roomNumber: oldBed.roomNumber, bedNumber: oldBed.bedNumber, studentName: oldBed.studentName },
+      { $set: { roomNumber: newBed.roomNumber, bedNumber: newBed.bedNumber } }
+    );
+    await Complaint.updateMany(
+      { roomNumber: oldBed.roomNumber },
+      { $set: { roomNumber: newBed.roomNumber } }
+    );
+
     emitSocketEvent(req, 'STUDENT_TRANSFERRED', { oldBed, newBed });
 
     return res.status(200).json({ success: true, data: { oldBed, newBed } });
