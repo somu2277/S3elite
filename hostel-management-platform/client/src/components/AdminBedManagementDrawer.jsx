@@ -73,7 +73,7 @@ const AdminBedManagementDrawer = ({ bedId, onClose, onBedUpdated }) => {
             rentPerBed: json.data.rentPerBed || 0,
             securityDeposit: json.data.securityDeposit || 0,
             discount: json.data.discount || 0,
-            nextDueDate: json.data.nextDueDate || '',
+            nextDueDate: json.data.nextDueDate ? (json.data.nextDueDate.includes('T') ? json.data.nextDueDate.substring(0, 10) : json.data.nextDueDate) : '',
             notes: json.data.notes || '',
             messEnabled: json.data.messEnabled || false,
             messCharges: json.data.messCharges || 2500,
@@ -578,7 +578,7 @@ const AdminBedManagementDrawer = ({ bedId, onClose, onBedUpdated }) => {
                         {payments.map(p => (
                           <tr key={p._id}>
                             <td className="p-3 text-textMuted">{new Date(p.createdAt).toLocaleDateString()}</td>
-                            <td className="p-3 font-bold text-emerald-400">₹{p.amountPaid}</td>
+                            <td className="p-3 font-bold text-emerald-400">₹{p.totalAmount || p.amount || 0}</td>
                             <td className="p-3 text-textMuted">{p.paymentMethod}</td>
                             <td className="p-3">
                               <span className={`px-2 py-0.5 rounded text-[10px] ${p.verificationStatus === 'Verified' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>{p.verificationStatus}</span>
