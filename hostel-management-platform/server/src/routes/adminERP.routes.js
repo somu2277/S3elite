@@ -70,7 +70,7 @@ const ensureSeedMatrix = async () => {
       aadhaarNumber: 'XXXX-XXXX-4829',
       admissionDate: '15 July 2026',
       joiningDate: '15 July 2026',
-      agreementEndDate: '14 June 2027',
+      duration: '11 Months',
       rentPerBed: 6000,
       securityDeposit: 5000,
       pendingAmount: 0,
@@ -94,7 +94,7 @@ const ensureSeedMatrix = async () => {
       aadhaarNumber: 'XXXX-XXXX-9182',
       admissionDate: '01 July 2026',
       joiningDate: '01 July 2026',
-      agreementEndDate: '31 May 2027',
+      duration: '11 Months',
       rentPerBed: 6000,
       securityDeposit: 5000,
       pendingAmount: 6000,
@@ -118,7 +118,7 @@ const ensureSeedMatrix = async () => {
       aadhaarNumber: 'XXXX-XXXX-3341',
       admissionDate: '10 July 2026',
       joiningDate: '10 July 2026',
-      agreementEndDate: '09 June 2027',
+      duration: '11 Months',
       rentPerBed: 6000,
       securityDeposit: 5000,
       pendingAmount: 0,
@@ -142,7 +142,7 @@ const ensureSeedMatrix = async () => {
       aadhaarNumber: 'XXXX-XXXX-7721',
       admissionDate: '09 July 2026',
       joiningDate: '09 July 2026',
-      agreementEndDate: '08 June 2027',
+      duration: '11 Months',
       rentPerBed: 5800,
       securityDeposit: 5000,
       pendingAmount: 0,
@@ -198,7 +198,7 @@ const ensureSeedMatrix = async () => {
           aadhaarNumber: resident ? resident.aadhaarNumber : 'XXXX-XXXX-4829',
           admissionDate: resident ? resident.admissionDate : '15 July 2026',
           joiningDate: resident ? resident.joiningDate : '15 July 2026',
-          agreementEndDate: resident ? resident.agreementEndDate : '14 June 2027',
+          duration: resident ? resident.duration : '11 Months',
           rentPerBed: resident ? resident.rentPerBed : floor.rent,
           securityDeposit: resident ? resident.securityDeposit : 5000,
           pendingAmount: resident ? resident.pendingAmount : 0,
@@ -424,7 +424,7 @@ router.put('/bed/:bedId', async (req, res) => {
       'studentName', 'phone', 'whatsappNumber', 'email', 'fatherName', 'motherName',
       'emergencyContact', 'currentAddress', 'permanentAddress', 'collegeName',
       'companyName', 'occupation', 'aadhaarNumber', 'admissionDate', 'joiningDate',
-      'agreementEndDate', 'rentPerBed', 'securityDeposit', 'pendingAmount',
+      'duration', 'rentPerBed', 'securityDeposit', 'pendingAmount',
       'lastPaymentDate', 'nextDueDate', 'paymentStatus', 'reservationStatus',
       'notes', 'profilePhoto', 'occupied'
     ];
@@ -591,7 +591,7 @@ router.put('/transfer', async (req, res) => {
     newBed.aadhaarNumber = oldBed.aadhaarNumber;
     newBed.admissionDate = oldBed.admissionDate;
     newBed.joiningDate = oldBed.joiningDate;
-    newBed.agreementEndDate = oldBed.agreementEndDate;
+    newBed.duration = oldBed.duration;
     newBed.securityDeposit = oldBed.securityDeposit;
     newBed.pendingAmount = oldBed.pendingAmount;
     newBed.lastPaymentDate = oldBed.lastPaymentDate;
@@ -696,6 +696,7 @@ router.put('/booking-requests/:id/approve', async (req, res) => {
     bed.aadhaarNumber = request.aadhaar;
     bed.admissionDate = new Date().toISOString().slice(0, 10);
     bed.joiningDate = new Date().toISOString().slice(0, 10);
+    bed.duration = request.stayDuration || '11 Months';
     await bed.save();
 
     emitSocketEvent(req, 'STUDENT_ADMITTED', { bedId: bed._id, studentName: request.name });
