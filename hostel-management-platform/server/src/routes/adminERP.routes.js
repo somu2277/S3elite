@@ -690,9 +690,17 @@ router.put('/booking-requests/:id/approve', async (req, res) => {
     bed.reservationStatus = 'Occupied';
     bed.studentName = request.name;
     bed.phone = request.phone;
+    bed.whatsappNumber = request.whatsappNumber || request.phone;
     bed.email = request.email;
+    bed.fatherName = request.fatherName;
+    bed.currentAddress = request.currentAddress;
+    bed.occupation = request.occupation;
+    bed.companyName = request.collegeCompany;
     bed.collegeName = request.collegeCompany;
     bed.emergencyContact = request.emergencyContact;
+    if (request.notes) {
+      bed.notes = request.notes;
+    }
     bed.aadhaarNumber = request.aadhaar;
     bed.admissionDate = new Date().toISOString().slice(0, 10);
     bed.joiningDate = new Date().toISOString().slice(0, 10);

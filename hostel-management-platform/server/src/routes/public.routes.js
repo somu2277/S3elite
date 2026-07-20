@@ -256,7 +256,7 @@ router.get('/room/:id', async (req, res) => {
  */
 router.post('/booking-request', async (req, res) => {
   try {
-    const { name, email, phone, collegeCompany, emergencyContact, aadhaar, expectedJoiningDate, stayDuration, preferredRoom, preferredBed, utrNumber, paymentScreenshot } = req.body;
+    const { name, email, phone, whatsappNumber, fatherName, currentAddress, occupation, notes, collegeCompany, emergencyContact, aadhaar, expectedJoiningDate, stayDuration, preferredRoom, preferredBed, utrNumber, paymentScreenshot } = req.body;
 
     if (!name || !email || !phone || !preferredRoom || preferredBed == null || !stayDuration) {
       return res.status(400).json({ success: false, message: 'Missing required booking fields, including Stay Duration' });
@@ -284,6 +284,11 @@ router.post('/booking-request', async (req, res) => {
       name,
       email,
       phone,
+      whatsappNumber,
+      fatherName,
+      currentAddress,
+      occupation,
+      notes,
       collegeCompany,
       emergencyContact,
       aadhaar,
